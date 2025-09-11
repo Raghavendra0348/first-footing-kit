@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,7 +7,7 @@ import { Layout } from "@/components/Layout";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import IntroPage from "@/components/IntroPage";
+import { ReportsProvider } from "@/contexts/ReportsContext";
 import Homepage from "./pages/Homepage";
 import AuthPage from "./pages/AuthPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -27,16 +26,14 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 function App() {
-  const [showIntro, setShowIntro] = useState(true);
-
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="system" storageKey="civic-ui-theme">
         <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            {showIntro && <IntroPage onComplete={() => setShowIntro(false)} />}
+          <ReportsProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Homepage />} />
@@ -74,7 +71,8 @@ function App() {
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
-          </TooltipProvider>
+            </TooltipProvider>
+          </ReportsProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

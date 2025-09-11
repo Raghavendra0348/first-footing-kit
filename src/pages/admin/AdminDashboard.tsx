@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PriorityBadge } from "@/components/PriorityBadge";
-import { mockReports } from "@/data/mockData";
+import { useReports } from "@/contexts/ReportsContext";
 import { Link } from "react-router-dom";
 import { 
   FileText, 
@@ -17,18 +17,20 @@ import {
 } from "lucide-react";
 
 const AdminDashboard = () => {
+  const { reports } = useReports();
+  
   const getStatistics = () => {
-    const total = mockReports.length;
-    const submitted = mockReports.filter(r => r.status === "submitted").length;
-    const inProgress = mockReports.filter(r => r.status === "acknowledged" || r.status === "in-progress").length;
-    const resolved = mockReports.filter(r => r.status === "resolved").length;
-    const highPriority = mockReports.filter(r => r.priority === "high").length;
+    const total = reports.length;
+    const submitted = reports.filter(r => r.status === "submitted").length;
+    const inProgress = reports.filter(r => r.status === "acknowledged" || r.status === "in-progress").length;
+    const resolved = reports.filter(r => r.status === "resolved").length;
+    const highPriority = reports.filter(r => r.priority === "high").length;
     
     return { total, submitted, inProgress, resolved, highPriority };
   };
 
   const stats = getStatistics();
-  const recentReports = mockReports.slice(0, 5);
+  const recentReports = reports.slice(0, 5);
 
   return (
     <div className="space-y-8">

@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { ProfileDropdown } from "@/components/ProfileDropdown";
 import { FileText, Home, BarChart3, Users } from "lucide-react";
 
 interface LayoutProps {
@@ -62,20 +63,24 @@ export const Layout = ({ children, type = "citizen" }: LayoutProps) => {
               })}
             </nav>
 
-            {type === "admin" && (
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-muted-foreground hidden sm:block">Admin Panel</span>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/">View Citizen Site</Link>
-                </Button>
-              </div>
-            )}
+            <div className="flex items-center space-x-4">
+              {type === "admin" && (
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-muted-foreground hidden sm:block">Admin Panel</span>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/">View Citizen Site</Link>
+                  </Button>
+                </div>
+              )}
 
-            {type === "citizen" && (
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/admin/login">Staff Login</Link>
-              </Button>
-            )}
+              {type === "citizen" && (
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/admin/login">Staff Login</Link>
+                </Button>
+              )}
+              
+              <ProfileDropdown type={type} />
+            </div>
           </div>
         </div>
       </header>

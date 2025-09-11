@@ -5,15 +5,16 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PriorityBadge } from "@/components/PriorityBadge";
-import { mockReports } from "@/data/mockData";
+import { useReports } from "@/contexts/ReportsContext";
 import { Link } from "react-router-dom";
 import { Calendar, MapPin, FileText, Eye, TrendingUp } from "lucide-react";
 
 const CitizenDashboard = () => {
   const [selectedTab, setSelectedTab] = useState("all");
+  const { reports } = useReports();
 
   // Filter reports based on selected tab
-  const filteredReports = mockReports.filter(report => {
+  const filteredReports = reports.filter(report => {
     switch (selectedTab) {
       case "submitted":
         return report.status === "submitted";
@@ -28,10 +29,10 @@ const CitizenDashboard = () => {
 
   const getStatusCounts = () => {
     return {
-      total: mockReports.length,
-      submitted: mockReports.filter(r => r.status === "submitted").length,
-      progress: mockReports.filter(r => r.status === "acknowledged" || r.status === "in-progress").length,
-      resolved: mockReports.filter(r => r.status === "resolved").length,
+      total: reports.length,
+      submitted: reports.filter(r => r.status === "submitted").length,
+      progress: reports.filter(r => r.status === "acknowledged" || r.status === "in-progress").length,
+      resolved: reports.filter(r => r.status === "resolved").length,
     };
   };
 

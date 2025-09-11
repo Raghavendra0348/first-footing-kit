@@ -1,37 +1,41 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { mockReports, categories, departments } from "@/data/mockData";
+import { useReports } from "@/contexts/ReportsContext";
+import { categories, departments } from "@/data/mockData";
+import { IssueStatsChart } from "@/components/charts/IssueStatsChart";
 import { BarChart3, TrendingUp, Clock, Target, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const AdminAnalytics = () => {
+  const { reports } = useReports();
+  
   const getAnalytics = () => {
-    const total = mockReports.length;
-    const resolved = mockReports.filter(r => r.status === "resolved").length;
-    const inProgress = mockReports.filter(r => r.status === "acknowledged" || r.status === "in-progress").length;
-    const submitted = mockReports.filter(r => r.status === "submitted").length;
+    const total = reports.length;
+    const resolved = reports.filter(r => r.status === "resolved").length;
+    const inProgress = reports.filter(r => r.status === "acknowledged" || r.status === "in-progress").length;
+    const submitted = reports.filter(r => r.status === "submitted").length;
     
     const resolutionRate = total > 0 ? Math.round((resolved / total) * 100) : 0;
     
     // Category breakdown
     const categoryStats = categories.map(category => ({
       name: category,
-      count: mockReports.filter(r => r.category === category).length,
-      resolved: mockReports.filter(r => r.category === category && r.status === "resolved").length,
+      count: reports.filter(r => r.category === category).length,
+      resolved: reports.filter(r => r.category === category && r.status === "resolved").length,
     }));
 
     // Department stats
     const departmentStats = departments.map(dept => ({
       name: dept,
-      assigned: mockReports.filter(r => r.assignedDepartment === dept).length,
-      resolved: mockReports.filter(r => r.assignedDepartment === dept && r.status === "resolved").length,
+      assigned: reports.filter(r => r.assignedDepartment === dept).length,
+      resolved: reports.filter(r => r.assignedDepartment === dept && r.status === "resolved").length,
     }));
 
     // Priority distribution
     const priorityStats = [
-      { level: "High", count: mockReports.filter(r => r.priority === "high").length },
-      { level: "Medium", count: mockReports.filter(r => r.priority === "medium").length },
-      { level: "Low", count: mockReports.filter(r => r.priority === "low").length },
+      { level: "High", count: reports.filter(r => r.priority === "high").length },
+      { level: "Medium", count: reports.filter(r => r.priority === "medium").length },
+      { level: "Low", count: reports.filter(r => r.priority === "low").length },
     ];
 
     return {
@@ -107,6 +111,18 @@ const AdminAnalytics = () => {
                 <p className="text-sm text-muted-foreground">Avg Days</p>
               </div>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts Section */}
+      <div className="space-y-6">
+        <Card className="shadow-card">
+          <CardHeader>
+            <CardTitle>Issue Statistics</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <IssueStatsChart />
           </CardContent>
         </Card>
       </div>

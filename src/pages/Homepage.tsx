@@ -59,7 +59,7 @@ const Homepage = () => {
               >
                 <Button asChild size="lg" variant="secondary" className="text-lg px-8 py-6 hover:scale-105 transition-transform">
                   <Link to={user ? "/report" : "/auth"}>
-                    {user ? "Report an Issue" : "Get Started"}
+                    Report an Issue
                   </Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="text-lg px-8 py-6 border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 hover:scale-105 transition-transform">
@@ -172,35 +172,35 @@ const Homepage = () => {
             <h2 className="text-3xl font-bold text-center mb-12">Quick Access</h2>
             
             <div className="grid md:grid-cols-2 gap-8">
-              <Card className="p-8 bg-gradient-card shadow-card hover:shadow-elevated transition-smooth">
-                <CardContent className="pt-0">
-                  <div className="flex items-center mb-4">
-                    <BarChart3 className="w-8 h-8 text-civic-blue mr-3" />
-                    <h3 className="text-xl font-semibold">Track My Reports</h3>
-                  </div>
-                  <p className="text-muted-foreground mb-6">
-                    View the status of all your submitted reports in one place. Get real-time updates and communicate with authorities.
-                  </p>
-                  <Button asChild variant="civic" className="w-full">
-                    <Link to="/dashboard">Go to Dashboard</Link>
-                  </Button>
-                </CardContent>
-              </Card>
+            <Card className="p-8 bg-gradient-card shadow-card hover:shadow-elevated transition-smooth">
+              <CardContent className="pt-0">
+                <div className="flex items-center mb-4">
+                  <BarChart3 className="w-8 h-8 text-civic-blue mr-3" />
+                  <h3 className="text-xl font-semibold">Report an Issue</h3>
+                </div>
+                <p className="text-muted-foreground mb-6">
+                  Report civic issues in your community. Quick, easy, and tracked from start to resolution.
+                </p>
+                <Button asChild variant="civic" className="w-full">
+                  <Link to="/report">Report an Issue</Link>
+                </Button>
+              </CardContent>
+            </Card>
 
-              <Card className="p-8 bg-gradient-card shadow-card hover:shadow-elevated transition-smooth">
-                <CardContent className="pt-0">
-                  <div className="flex items-center mb-4">
-                    <Users className="w-8 h-8 text-civic-green mr-3" />
-                    <h3 className="text-xl font-semibold">Need Help?</h3>
-                  </div>
-                  <p className="text-muted-foreground mb-6">
-                    Find answers to common questions, learn how to use the system, or contact our support team for assistance.
-                  </p>
-                  <Button asChild variant="success" className="w-full">
-                    <Link to="/help">View FAQs</Link>
-                  </Button>
-                </CardContent>
-              </Card>
+            <Card className="p-8 bg-gradient-card shadow-card hover:shadow-elevated transition-smooth">
+              <CardContent className="pt-0">
+                <div className="flex items-center mb-4">
+                  <Users className="w-8 h-8 text-civic-green mr-3" />
+                  <h3 className="text-xl font-semibold">Track My Reports</h3>
+                </div>
+                <p className="text-muted-foreground mb-6">
+                  View the status of all your submitted reports in one place. Get real-time updates and communicate with authorities.
+                </p>
+                <Button asChild variant="success" className="w-full">
+                  <Link to="/dashboard">Go to Dashboard</Link>
+                </Button>
+              </CardContent>
+            </Card>
             </div>
           </div>
         </div>
