@@ -1,0 +1,231 @@
+import { useParams, Link } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/StatusBadge";
+import { PriorityBadge } from "@/components/PriorityBadge";
+import { mockReports } from "@/data/mockData";
+import { ArrowLeft, MapPin, Calendar, User, Phone, Mail, FileText } from "lucide-react";
+
+const ReportDetail = () => {
+  const { id } = useParams();
+  const report = mockReports.find(r => r.id === id);
+
+  if (!report) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto text-center">
+          <h1 className="text-2xl font-bold mb-4">Report Not Found</h1>
+          <p className="text-muted-foreground mb-6">
+            The report you're looking for doesn't exist or may have been removed.
+          </p>
+          <Button asChild variant="civic">
+            <Link to="/dashboard">Back to Dashboard</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const getStatusSteps = () => {
+    const steps = [
+      { key: 'submitted', label: 'Submitted', date: report.dateSubmitted },
+      { key: 'acknowledged', label: 'Acknowledged', date: report.dateAcknowledged },
+      { key: 'in-progress', label: 'In Progress', date: report.dateInProgress },
+      { key: 'resolved', label: 'Resolved', date: report.dateResolved },
+    ];
+
+    const currentStatusIndex = steps.findIndex(step => step.key === report.status);
+    
+    return steps.map((step, index) => ({
+      ...step,
+      isCompleted: index <= currentStatusIndex,
+      isCurrent: index === currentStatusIndex,
+    }));
+  };
+
+  const statusSteps = getStatusSteps();
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-8">
+          <Button asChild variant="outline" size="sm">
+            <Link to="/dashboard">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Link>
+          </Button>
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold">{report.title}</h1>
+            <p className="text-muted-foreground">Report ID: {report.id}</p>
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Report Overview */}
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle>Report Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  <StatusBadge status={report.status} />
+                  <PriorityBadge priority={report.priority} />
+                  <Badge variant="outline">{report.category}</Badge>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-2">Description</h3>
+                  <p className="text-muted-foreground">{report.description}</p>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="flex items-center">
+                    <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
+                    <span className="text-sm">
+                      <strong>Submitted:</strong> {new Date(report.dateSubmitted).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <MapPin className="w-4 h-4 mr-2 text-muted-foreground" />
+                    <span className="text-sm">
+                      <strong>Location:</strong> {report.location.address}
+                    </span>
+                  </div>
+                  {report.assignedDepartment && (
+                    <div className="flex items-center">
+                      <User className="w-4 h-4 mr-2 text-muted-foreground" />
+                      <span className="text-sm">
+                        <strong>Assigned to:</strong> {report.assignedDepartment}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Photos */}
+                {report.photos.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-2">Photos</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {report.photos.map((photo, index) => (
+                        <div key={index} className="aspect-square bg-muted rounded-lg border overflow-hidden">
+                          <img
+                            src={photo}
+                            alt={`Report photo ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Progress Updates */}
+            {report.publicNotes.length > 0 && (
+              <Card className="shadow-card">
+                <CardHeader>
+                  <CardTitle>Progress Updates</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {report.publicNotes.map((note, index) => (
+                      <div key={index} className="border-l-4 border-civic-blue pl-4">
+                        <p className="text-sm">{note}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {new Date().toLocaleDateString()} - Municipal Staff
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Status Timeline */}
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle>Status Timeline</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {statusSteps.map((step, index) => (
+                    <div key={step.key} className="flex items-start">
+                      <div className={`w-4 h-4 rounded-full mt-1 mr-3 ${
+                        step.isCompleted 
+                          ? step.key === 'resolved' 
+                            ? 'bg-status-resolved' 
+                            : 'bg-status-progress'
+                          : 'bg-muted'
+                      }`} />
+                      <div className="flex-1">
+                        <p className={`font-medium ${step.isCompleted ? 'text-foreground' : 'text-muted-foreground'}`}>
+                          {step.label}
+                        </p>
+                        {step.date && (
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(step.date).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Contact Information */}
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle>Contact Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center">
+                  <User className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <span className="text-sm">{report.citizenName}</span>
+                </div>
+                <div className="flex items-center">
+                  <Mail className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <span className="text-sm">{report.citizenEmail}</span>
+                </div>
+                {report.citizenPhone && (
+                  <div className="flex items-center">
+                    <Phone className="w-4 h-4 mr-2 text-muted-foreground" />
+                    <span className="text-sm">{report.citizenPhone}</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Quick Actions */}
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button variant="outline" className="w-full" disabled>
+                  <FileText className="w-4 h-4 mr-2" />
+                  Download Report
+                </Button>
+                <Button variant="outline" className="w-full" disabled>
+                  <Mail className="w-4 h-4 mr-2" />
+                  Contact Support
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ReportDetail;

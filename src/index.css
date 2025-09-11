@@ -9,45 +9,63 @@ All colors MUST be HSL.
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 218 30% 18%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 218 30% 18%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 218 30% 18%;
 
-    --primary: 262 83% 58%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 212 83% 45%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 220 14.3% 95.9%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 218 30% 18%;
 
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 262 83% 58%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 218 30% 18%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 262 83% 58%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 212 83% 45%;
 
-    /* Custom design tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(262, 83%, 58%), hsl(234, 89%, 74%));
-    --gradient-secondary: linear-gradient(135deg, hsl(234, 89%, 74%), hsl(262, 83%, 58%));
-    --gradient-subtle: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(220, 14.3%, 95.9%));
-    --hero-gradient: linear-gradient(135deg, hsl(262, 83%, 58%) 0%, hsl(234, 89%, 74%) 50%, hsl(299, 71%, 52%) 100%);
-    
+    /* Civic System Colors */
+    --civic-blue: 212 83% 45%;
+    --civic-blue-light: 212 83% 95%;
+    --civic-green: 142 71% 45%;
+    --civic-green-light: 142 71% 95%;
+    --civic-amber: 43 96% 56%;
+    --civic-amber-light: 43 96% 95%;
+    --civic-red: 0 84% 60%;
+    --civic-red-light: 0 84% 95%;
+
+    /* Status Colors */
+    --status-submitted: var(--civic-blue);
+    --status-submitted-light: var(--civic-blue-light);
+    --status-progress: var(--civic-amber);
+    --status-progress-light: var(--civic-amber-light);
+    --status-resolved: var(--civic-green);
+    --status-resolved-light: var(--civic-green-light);
+
+    /* Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(var(--civic-blue)), hsl(212 83% 35%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(210 40% 98%));
+    --gradient-success: linear-gradient(135deg, hsl(var(--civic-green)), hsl(142 71% 35%));
+
     /* Shadows */
-    --shadow-elegant: 0 10px 30px -10px hsl(262, 83%, 58%, 0.3);
-    --shadow-glow: 0 0 40px hsl(262, 83%, 58%, 0.2);
-    
+    --shadow-card: 0 4px 6px -1px hsl(var(--civic-blue) / 0.1), 0 2px 4px -1px hsl(var(--civic-blue) / 0.06);
+    --shadow-elevated: 0 10px 25px -3px hsl(var(--civic-blue) / 0.1), 0 4px 6px -2px hsl(var(--civic-blue) / 0.05);
+
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
     --radius: 0.5rem;
 
