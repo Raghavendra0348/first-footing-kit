@@ -111,7 +111,7 @@ export const ReportsProvider = ({ children }: { children: ReactNode }) => {
         public_notes: JSON.stringify(reportData.publicNotes || []),
         staff_notes: JSON.stringify(reportData.internalNotes || []),
         assigned_department: reportData.assignedDepartment,
-        user_id: 'anonymous', // For now, we'll use anonymous until auth is implemented
+        user_id: crypto.randomUUID(), // Generate a UUID for anonymous users
         status: 'submitted',
       };
 
