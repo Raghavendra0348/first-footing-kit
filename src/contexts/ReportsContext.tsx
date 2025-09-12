@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert } from '@/integrations/supabase/types';
+import { useAuth } from '@/hooks/useAuth';
 
 type CivicReport = Tables<'civic_reports'>;
 
@@ -46,6 +47,7 @@ export const useReports = () => {
 export const ReportsProvider = ({ children }: { children: ReactNode }) => {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   // Convert Supabase data to our Report format
   const convertFromSupabase = (civicReport: CivicReport): Report => {
@@ -111,7 +113,7 @@ export const ReportsProvider = ({ children }: { children: ReactNode }) => {
         public_notes: JSON.stringify(reportData.publicNotes || []),
         staff_notes: JSON.stringify(reportData.internalNotes || []),
         assigned_department: reportData.assignedDepartment,
-        user_id: crypto.randomUUID(), // Generate a UUID for anonymous users
+        user_id: user?.id || null, // Use authenticated user ID or null for anonymous users
         status: 'submitted',
       };
 
