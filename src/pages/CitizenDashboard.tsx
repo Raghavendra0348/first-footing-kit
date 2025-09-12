@@ -11,7 +11,20 @@ import { Calendar, MapPin, FileText, Eye, TrendingUp } from "lucide-react";
 
 const CitizenDashboard = () => {
   const [selectedTab, setSelectedTab] = useState("all");
-  const { reports } = useReports();
+  const { reports, loading } = useReports();
+
+  // Show loading spinner while reports are being fetched
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-civic-blue"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Filter reports based on selected tab
   const filteredReports = reports.filter(report => {

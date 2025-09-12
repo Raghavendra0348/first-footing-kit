@@ -41,38 +41,49 @@ const ReportIssue = () => {
 
     setIsSubmitting(true);
 
-    // Create new report
-    const reportId = addReport({
-      title: formData.title,
-      description: formData.description,
-      category: formData.category,
-      status: 'submitted',
-      priority: 'medium', // Default priority
-      citizenName: user?.email?.split('@')[0] || 'Anonymous',
-      citizenEmail: user?.email || '',
-      location: {
-        address: formData.location || 'Not specified',
-        lat: 0,
-        lng: 0
-      },
-      photos: ['/placeholder.svg'], // In real app, would upload photos
-      publicNotes: [],
-      internalNotes: []
-    });
-    
-    toast({
-      title: "Report Submitted Successfully!",
-      description: `Your report ID is ${reportId}. You can track its progress in your dashboard.`,
-    });
+    try {
+      // Create new report
+      const reportId = await addReport({
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        status: 'submitted',
+        priority: 'medium', // Default priority
+        citizenName: user?.email?.split('@')[0] || 'Anonymous',
+        citizenEmail: user?.email || '',
+        location: {
+          address: formData.location || 'Not specified',
+          lat: 0,
+          lng: 0
+        },
+        photos: ['/placeholder.svg'], // In real app, would upload photos
+        publicNotes: [],
+        internalNotes: []
+      });
+      
+      toast({
+        title: "Report Submitted Successfully!",
+        description: `Your report ID is ${reportId}. You can track its progress in your dashboard.`,
+      });
 
-    // Reset form
-    setFormData({
-      title: "",
-      description: "",
-      category: "",
-      location: "",
-      photos: [],
-    });
+      // Reset form
+      setFormData({
+        title: "",
+        description: "",
+        category: "",
+        location: "",
+        photos: [],
+      });
+    } catch (error) {
+      console.error('Error submitting report:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit report. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
 
     setIsSubmitting(false);
 
