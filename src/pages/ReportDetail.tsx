@@ -4,12 +4,26 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PriorityBadge } from "@/components/PriorityBadge";
-import { mockReports } from "@/data/mockData";
+import { useReports } from "@/contexts/ReportsContext";
+import { MediaPreview } from "@/components/MediaPreview";
 import { ArrowLeft, MapPin, Calendar, User, Phone, Mail, FileText } from "lucide-react";
 
 const ReportDetail = () => {
   const { id } = useParams();
-  const report = mockReports.find(r => r.id === id);
+  const { getReportById, loading } = useReports();
+  const report = getReportById(id || "");
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-civic-blue"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!report) {
     return (
@@ -106,19 +120,17 @@ const ReportDetail = () => {
                   )}
                 </div>
 
-                {/* Photos */}
-                {report.photos.length > 0 && (
+                {/* Media */}
+                {report.media.length > 0 && (
                   <div>
-                    <h3 className="font-semibold mb-2">Photos</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {report.photos.map((photo, index) => (
-                        <div key={index} className="aspect-square bg-muted rounded-lg border overflow-hidden">
-                          <img
-                            src={photo}
-                            alt={`Report photo ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
+                    <h3 className="font-semibold mb-2">Media</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      {report.media.map((mediaUrl, index) => (
+                        <MediaPreview
+                          key={index}
+                          url={mediaUrl}
+                          type="image"
+                        />
                       ))}
                     </div>
                   </div>
@@ -136,9 +148,9 @@ const ReportDetail = () => {
                   <div className="space-y-4">
                     {report.publicNotes.map((note, index) => (
                       <div key={index} className="border-l-4 border-civic-blue pl-4">
-                        <p className="text-sm">{note}</p>
+                        <p className="text-sm">{note.content}</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {new Date().toLocaleDateString()} - Municipal Staff
+                          {new Date(note.date).toLocaleDateString()} - {note.author}
                         </p>
                       </div>
                     ))}

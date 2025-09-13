@@ -10,27 +10,28 @@ import { useReports } from "@/contexts/ReportsContext";
 import { useAuth } from "@/hooks/useAuth";
 import { MapPin, Upload, Camera, Phone, CheckCircle, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { categories } from "@/data/mockData";
+import { categories } from "@/data/constants";
+import { MediaPreview } from "@/components/MediaPreview";
 import { motion } from "framer-motion";
 
 const ReportIssue = () => {
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    category: "",
-    location: "",
-    photos: [] as File[],
-  });
-  const { toast } = useToast();
-  const { addReport } = useReports();
-  const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const { addReport, uploadMedia } = useReports();
+
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
+  const [location, setLocation] = useState({ address: "", lat: undefined as number | undefined, lng: undefined as number | undefined });
+  const [media, setMedia] = useState<string[]>([]);
+  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title || !formData.description || !formData.category) {
+    if (!title.trim() || !description.trim() || !category || !location.address.trim()) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
@@ -42,70 +43,83 @@ const ReportIssue = () => {
     setIsSubmitting(true);
 
     try {
-      // Create new report
-      const reportId = await addReport({
-        title: formData.title,
-        description: formData.description,
-        category: formData.category,
-        status: 'submitted',
-        priority: 'medium', // Default priority
-        citizenName: user?.email?.split('@')[0] || 'Anonymous',
-        citizenEmail: user?.email || '',
+      // Upload media files first
+      const uploadedMediaUrls: string[] = [];
+      for (const file of mediaFiles) {
+        try {
+          const url = await uploadMedia(file);
+          uploadedMediaUrls.push(url);
+        } catch (error) {
+          console.error('Error uploading file:', error);
+          // Continue with other files
+        }
+      }
+
+      const reportData = {
+        title: title.trim(),
+        description: description.trim(),
+        category,
+        priority: "medium",
+        status: "submitted",
+        citizenName: user?.user_metadata?.full_name || "Anonymous User",
+        citizenEmail: user?.email || "",
+        citizenPhone: user?.user_metadata?.phone || undefined,
         location: {
-          address: formData.location || 'Not specified',
-          lat: 0,
-          lng: 0
+          address: location.address.trim(),
+          lat: location.lat || 0,
+          lng: location.lng || 0,
         },
-        photos: ['/placeholder.svg'], // In real app, would upload photos
+        media: uploadedMediaUrls,
         publicNotes: [],
-        internalNotes: []
-      });
+        internalNotes: [],
+      };
+
+      const reportId = await addReport(reportData);
       
       toast({
         title: "Report Submitted Successfully!",
-        description: `Your report ID is ${reportId}. You can track its progress in your dashboard.`,
+        description: `Your issue has been logged with ID: ${reportId}`,
       });
 
       // Reset form
-      setFormData({
-        title: "",
-        description: "",
-        category: "",
-        location: "",
-        photos: [],
-      });
+      setTitle("");
+      setDescription("");
+      setCategory("");
+      setLocation({ address: "", lat: undefined, lng: undefined });
+      setMedia([]);
+      setMediaFiles([]);
+      
+      // Navigate to success page or dashboard
+      navigate("/dashboard");
+      
     } catch (error) {
-      console.error('Error submitting report:', error);
+      console.error("Error submitting report:", error);
       toast({
-        title: "Error",
-        description: "Failed to submit report. Please try again.",
+        title: "Submission Failed",
+        description: "There was an error submitting your report. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
-
-    // Redirect to dashboard after 2 seconds
-    setTimeout(() => {
-      navigate("/dashboard");
-    }, 2000);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setFormData(prev => ({ ...prev, photos: [...prev.photos, ...files] }));
+    const newMediaUrls = files.map(file => URL.createObjectURL(file));
+    setMedia(prev => [...prev, ...newMediaUrls]);
+    setMediaFiles(prev => [...prev, ...files]);
   };
 
   const handleLocationDetect = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setFormData(prev => ({
-            ...prev,
-            location: `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`
-          }));
+          setLocation({
+            address: `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`,
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
           toast({
             title: "Location Detected",
             description: "Your current location has been added to the report.",
@@ -168,8 +182,8 @@ const ReportIssue = () => {
                     <Input
                       id="title"
                       placeholder="Brief description of the issue"
-                      value={formData.title}
-                      onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
                       required
                     />
                   </div>
@@ -177,8 +191,8 @@ const ReportIssue = () => {
                   <div className="space-y-2">
                     <Label htmlFor="category">Category *</Label>
                     <Select
-                      value={formData.category}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                      value={category}
+                      onValueChange={(value) => setCategory(value)}
                       required
                     >
                       <SelectTrigger>
@@ -199,8 +213,8 @@ const ReportIssue = () => {
                     <Textarea
                       id="description"
                       placeholder="Provide detailed information about the issue, including when you first noticed it and any relevant details."
-                      value={formData.description}
-                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
                       rows={4}
                       required
                     />
@@ -212,8 +226,8 @@ const ReportIssue = () => {
                       <Input
                         id="location"
                         placeholder="Enter address or coordinates"
-                        value={formData.location}
-                        onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                        value={location.address}
+                        onChange={(e) => setLocation(prev => ({ ...prev, address: e.target.value }))}
                         className="flex-1"
                       />
                       <Button
@@ -241,7 +255,7 @@ const ReportIssue = () => {
                         type="file"
                         id="photos"
                         multiple
-                        accept="image/*"
+                        accept="image/*,video/*,audio/*"
                         onChange={handleFileUpload}
                         className="hidden"
                       />
@@ -252,10 +266,17 @@ const ReportIssue = () => {
                       >
                         Choose Files
                       </Button>
-                      {formData.photos.length > 0 && (
-                        <p className="text-sm text-civic-green mt-2">
-                          {formData.photos.length} file(s) selected
-                        </p>
+                      {media.length > 0 && (
+                        <div className="mt-4 grid grid-cols-2 gap-2">
+                          {media.map((mediaUrl, index) => (
+                            <MediaPreview
+                              key={index}
+                              url={mediaUrl}
+                              type="image"
+                              className="h-20"
+                            />
+                          ))}
+                        </div>
                       )}
                     </div>
                   </div>

@@ -7,17 +7,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PriorityBadge } from "@/components/PriorityBadge";
-import { mockReports, categories, departments } from "@/data/mockData";
+import { categories, departments } from "@/data/constants";
 import { Link } from "react-router-dom";
 import { Search, Filter, Download, Eye, MapPin, Calendar } from "lucide-react";
+import { useReports } from "@/contexts/ReportsContext";
 
 const AdminIssues = () => {
+  const { reports, loading } = useReports();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [departmentFilter, setDepartmentFilter] = useState("all");
 
-  const filteredReports = mockReports.filter(report => {
+  const filteredReports = reports.filter(report => {
     const matchesSearch = report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          report.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          report.citizenName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -54,7 +56,17 @@ const AdminIssues = () => {
     window.URL.revokeObjectURL(url);
   };
 
+  if (loading) {
   return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-civic-blue"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
@@ -137,7 +149,7 @@ const AdminIssues = () => {
 
           <div className="flex justify-between items-center mt-4 pt-4 border-t">
             <div className="text-sm text-muted-foreground">
-              Showing {filteredReports.length} of {mockReports.length} issues
+              Showing {filteredReports.length} of {reports.length} issues
             </div>
             <Button 
               variant="outline" 

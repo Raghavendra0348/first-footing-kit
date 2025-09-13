@@ -15,12 +15,16 @@ interface Report {
   dateSubmitted: string;
   citizenName: string;
   citizenEmail: string;
+  citizenPhone?: string;
   location: {
     address: string;
     lat?: number;
     lng?: number;
   };
-  photos: string[];
+  media: string[];
+  dateAcknowledged?: string;
+  dateInProgress?: string;
+  dateResolved?: string;
   publicNotes: Array<{ id: string; content: string; date: string; author: string }>;
   internalNotes: Array<{ id: string; content: string; date: string; author: string }>;
   assignedDepartment?: string;
@@ -29,9 +33,13 @@ interface Report {
 interface ReportsContextType {
   reports: Report[];
   loading: boolean;
+  error: string | null;
   addReport: (report: Omit<Report, 'id' | 'dateSubmitted'>) => Promise<string>;
-  updateReport: (id: string, updates: Partial<Report>) => void;
+  updateReport: (id: string, updates: Partial<Report>) => Promise<void>;
   getReportById: (id: string) => Report | undefined;
+  addPublicNote: (reportId: string, content: string, author: string) => Promise<void>;
+  addInternalNote: (reportId: string, content: string, author: string) => Promise<void>;
+  uploadMedia: (file: File) => Promise<string>;
 }
 
 const ReportsContext = createContext<ReportsContextType | undefined>(undefined);
@@ -47,6 +55,7 @@ export const useReports = () => {
 export const ReportsProvider = ({ children }: { children: ReactNode }) => {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
   // Convert Supabase data to our Report format
@@ -59,14 +68,14 @@ export const ReportsProvider = ({ children }: { children: ReactNode }) => {
       priority: civicReport.priority,
       status: civicReport.status,
       dateSubmitted: civicReport.created_at,
-      citizenName: 'Anonymous', // We'll enhance this when auth is added
+      citizenName: 'Anonymous',
       citizenEmail: '',
       location: {
         address: civicReport.location_address || '',
         lat: civicReport.location_lat || undefined,
         lng: civicReport.location_lng || undefined,
       },
-      photos: civicReport.photo_urls || [],
+      media: civicReport.photo_urls || [],
       publicNotes: JSON.parse(civicReport.public_notes || '[]'),
       internalNotes: JSON.parse(civicReport.staff_notes || '[]'),
       assignedDepartment: civicReport.assigned_department || undefined,
@@ -76,6 +85,9 @@ export const ReportsProvider = ({ children }: { children: ReactNode }) => {
   // Load reports from Supabase
   const loadReports = async () => {
     try {
+      setLoading(true);
+      setError(null);
+      
       const { data, error } = await supabase
         .from('civic_reports')
         .select('*')
@@ -83,6 +95,7 @@ export const ReportsProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) {
         console.error('Error loading reports:', error);
+        setError('Failed to load reports');
         return;
       }
 
@@ -90,6 +103,7 @@ export const ReportsProvider = ({ children }: { children: ReactNode }) => {
       setReports(convertedReports);
     } catch (error) {
       console.error('Error loading reports:', error);
+      setError('Failed to load reports');
     } finally {
       setLoading(false);
     }
@@ -109,7 +123,7 @@ export const ReportsProvider = ({ children }: { children: ReactNode }) => {
         location_address: reportData.location.address,
         location_lat: reportData.location.lat,
         location_lng: reportData.location.lng,
-        photo_urls: reportData.photos,
+        photo_urls: reportData.media,
         public_notes: JSON.stringify(reportData.publicNotes || []),
         staff_notes: JSON.stringify(reportData.internalNotes || []),
         assigned_department: reportData.assignedDepartment,
@@ -132,6 +146,7 @@ export const ReportsProvider = ({ children }: { children: ReactNode }) => {
       // Update with the actual citizen info from the form data
       newReport.citizenName = reportData.citizenName;
       newReport.citizenEmail = reportData.citizenEmail;
+      newReport.citizenPhone = reportData.citizenPhone;
       setReports(prev => [newReport, ...prev]);
       return data.id;
     } catch (error) {
@@ -140,7 +155,34 @@ export const ReportsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updateReport = async (id: string, updates: Partial<Report>) => {
+  const uploadMedia = async (file: File): Promise<string> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `reports/${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from('report-media')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('report-media')
+        .getPublicUrl(filePath);
+
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error('Error uploading media:', error);
+      throw error;
+    }
+  };
+
+  const updateReport = async (id: string, updates: Partial<Report>): Promise<void> => {
     try {
       const updateData: any = {};
       
@@ -159,7 +201,7 @@ export const ReportsProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) {
         console.error('Error updating report:', error);
-        return;
+        throw error;
       }
 
       setReports(prev => 
@@ -169,7 +211,38 @@ export const ReportsProvider = ({ children }: { children: ReactNode }) => {
       );
     } catch (error) {
       console.error('Error updating report:', error);
+      throw error;
     }
+  };
+
+  const addPublicNote = async (reportId: string, content: string, author: string): Promise<void> => {
+    const report = reports.find(r => r.id === reportId);
+    if (!report) return;
+
+    const newNote = {
+      id: crypto.randomUUID(),
+      content,
+      date: new Date().toISOString(),
+      author,
+    };
+
+    const updatedNotes = [...report.publicNotes, newNote];
+    await updateReport(reportId, { publicNotes: updatedNotes });
+  };
+
+  const addInternalNote = async (reportId: string, content: string, author: string): Promise<void> => {
+    const report = reports.find(r => r.id === reportId);
+    if (!report) return;
+
+    const newNote = {
+      id: crypto.randomUUID(),
+      content,
+      date: new Date().toISOString(),
+      author,
+    };
+
+    const updatedNotes = [...report.internalNotes, newNote];
+    await updateReport(reportId, { internalNotes: updatedNotes });
   };
 
   const getReportById = (id: string): Report | undefined => {
@@ -177,7 +250,17 @@ export const ReportsProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <ReportsContext.Provider value={{ reports, loading, addReport, updateReport, getReportById }}>
+    <ReportsContext.Provider value={{ 
+      reports, 
+      loading, 
+      error,
+      addReport, 
+      updateReport, 
+      getReportById,
+      addPublicNote,
+      addInternalNote,
+      uploadMedia
+    }}>
       {children}
     </ReportsContext.Provider>
   );

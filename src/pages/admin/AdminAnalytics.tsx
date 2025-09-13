@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useReports } from "@/contexts/ReportsContext";
-import { categories, departments } from "@/data/mockData";
+import { categories, departments } from "@/data/constants";
 import { IssueStatsChart } from "@/components/charts/IssueStatsChart";
 import { BarChart3, TrendingUp, Clock, Target, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";

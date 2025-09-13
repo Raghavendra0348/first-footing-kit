@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PriorityBadge } from "@/components/PriorityBadge";
-import { mockReports, departments } from "@/data/mockData";
+import { departments } from "@/data/constants";
+import { useReports } from "@/contexts/ReportsContext";
 import { useToast } from "@/hooks/use-toast";
 import { Users, MapPin, Calendar, CheckSquare } from "lucide-react";
 
@@ -112,7 +113,7 @@ const AdminAssign = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {mockReports.filter(r => r.priority === "high").length}
+                  {reports.filter(r => r.priority === "high").length}
                 </p>
                 <p className="text-sm text-muted-foreground">High Priority</p>
               </div>
@@ -128,7 +129,7 @@ const AdminAssign = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {mockReports.filter(r => !r.assignedDepartment).length}
+                  {reports.filter(r => !r.assignedDepartment).length}
                 </p>
                 <p className="text-sm text-muted-foreground">Unassigned</p>
               </div>

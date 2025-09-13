@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PriorityBadge } from "@/components/PriorityBadge";
-import { mockReports, departments } from "@/data/mockData";
+import { departments } from "@/data/constants";
+import { useReports } from "@/contexts/ReportsContext";
 import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, 
@@ -24,7 +25,8 @@ import {
 
 const AdminIssueDetail = () => {
   const { id } = useParams();
-  const report = mockReports.find(r => r.id === id);
+  const { getReportById, updateReport, addPublicNote, addInternalNote, loading } = useReports();
+  const report = getReportById(id || "");
   const { toast } = useToast();
 
   const [status, setStatus] = useState<string>(report?.status || "submitted");
@@ -32,6 +34,18 @@ const AdminIssueDetail = () => {
   const [assignedDepartment, setAssignedDepartment] = useState<string>(report?.assignedDepartment || "");
   const [publicNote, setPublicNote] = useState("");
   const [internalNote, setInternalNote] = useState("");
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-civic-blue"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!report) {
     return (
