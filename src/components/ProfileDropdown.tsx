@@ -135,12 +135,6 @@ export const ProfileDropdown = ({ type = 'citizen' }: ProfileDropdownProps) => {
         ) : (
           <>
             <DropdownMenuItem asChild>
-              <Link to="/district-reports" className="flex items-center">
-                <Building2 className="mr-2 h-4 w-4" />
-                <span>District Reports</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
               <Link to="/settings" className="flex items-center">
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>

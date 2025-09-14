@@ -33,7 +33,7 @@ export type Database = {
           location_lng: number | null
           photo_urls: string[] | null
           priority: string
-          public_notes: string | null
+          public_notes: string[] | null
           staff_notes: string | null
           status: string
           title: string
@@ -59,7 +59,7 @@ export type Database = {
           location_lng?: number | null
           photo_urls?: string[] | null
           priority?: string
-          public_notes?: string | null
+          public_notes?: string[] | null
           staff_notes?: string | null
           status?: string
           title: string
@@ -85,7 +85,7 @@ export type Database = {
           location_lng?: number | null
           photo_urls?: string[] | null
           priority?: string
-          public_notes?: string | null
+          public_notes?: string[] | null
           staff_notes?: string | null
           status?: string
           title?: string
@@ -127,6 +127,79 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      report_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          report_id: string
+          updated_at: string
+          user_id: string
+          user_name: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          report_id: string
+          updated_at?: string
+          user_id: string
+          user_name?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          report_id?: string
+          updated_at?: string
+          user_id?: string
+          user_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_comments_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "civic_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_votes: {
+        Row: {
+          created_at: string
+          id: string
+          report_id: string
+          updated_at: string
+          user_id: string
+          vote_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          report_id: string
+          updated_at?: string
+          user_id: string
+          vote_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          report_id?: string
+          updated_at?: string
+          user_id?: string
+          vote_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_votes_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "civic_reports"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

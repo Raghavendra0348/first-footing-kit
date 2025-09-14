@@ -17,6 +17,7 @@ import CitizenDashboard from "./pages/CitizenDashboard";
 import ReportDetail from "./pages/ReportDetail";
 import DistrictReports from "./pages/DistrictReports";
 import Help from "./pages/Help";
+import Settings from "./pages/Settings";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminIssues from "./pages/admin/AdminIssues";
@@ -64,6 +65,11 @@ function App() {
                 <Route path="/district-reports" element={
                   <ProtectedRoute>
                     <DistrictReports />
+                  </ProtectedRoute>
+                } />
+                <Route path="/settings" element={
+                  <ProtectedRoute>
+                    <Settings />
                   </ProtectedRoute>
                 } />
                 

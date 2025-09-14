@@ -99,17 +99,17 @@ const DistrictReports = () => {
       );
     }
 
-    if (selectedDistrict) {
+    if (selectedDistrict && selectedDistrict !== 'all') {
       filtered = filtered.filter(report => 
         report.location_address?.toLowerCase().includes(selectedDistrict.toLowerCase())
       );
     }
 
-    if (selectedCategory) {
+    if (selectedCategory && selectedCategory !== 'all') {
       filtered = filtered.filter(report => report.category === selectedCategory);
     }
 
-    if (selectedStatus) {
+    if (selectedStatus && selectedStatus !== 'all') {
       filtered = filtered.filter(report => report.status === selectedStatus);
     }
 
@@ -212,7 +212,7 @@ const DistrictReports = () => {
                     <SelectValue placeholder="District" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Districts</SelectItem>
+                    <SelectItem value="all">All Districts</SelectItem>
                     {DISTRICTS.map(district => (
                       <SelectItem key={district} value={district}>{district}</SelectItem>
                     ))}
@@ -224,7 +224,7 @@ const DistrictReports = () => {
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Categories</SelectItem>
+                    <SelectItem value="all">All Categories</SelectItem>
                     {CATEGORIES.map(category => (
                       <SelectItem key={category} value={category}>{category}</SelectItem>
                     ))}
@@ -236,7 +236,7 @@ const DistrictReports = () => {
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Status</SelectItem>
+                    <SelectItem value="all">All Status</SelectItem>
                     <SelectItem value="submitted">Submitted</SelectItem>
                     <SelectItem value="acknowledged">Acknowledged</SelectItem>
                     <SelectItem value="in-progress">In Progress</SelectItem>

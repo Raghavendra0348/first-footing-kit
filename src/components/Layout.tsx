@@ -16,7 +16,8 @@ export const Layout = ({ children, type = "citizen" }: LayoutProps) => {
   const citizenNavItems = [
     { path: "/", label: "Home", icon: Home },
     { path: "/report", label: "Report Issue", icon: FileText },
-    { path: "/dashboard", label: "My Reports", icon: BarChart3 },
+    { path: "/district-reports", label: "District Reports", icon: BarChart3 },
+    { path: "/dashboard", label: "My Reports", icon: Users },
     { path: "/help", label: "Help", icon: Users },
   ];
 
