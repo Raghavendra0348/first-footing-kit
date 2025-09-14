@@ -2,6 +2,7 @@ import { ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FileText, Home, BarChart3, Users, Menu, X } from "lucide-react";
+import { ProfileDropdown } from "@/components/ProfileDropdown";
 
 interface LayoutProps {
   children: ReactNode;
@@ -43,52 +44,42 @@ export const Layout = ({ children, type = "citizen" }: LayoutProps) => {
             </Link>
 
             {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center space-x-1">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.path;
-                return (
-                  <Button
-                    key={item.path}
-                    asChild
-                    variant={isActive ? "default" : "ghost"}
-                    size="sm"
-                    className="transition-smooth"
-                  >
-                    <Link to={item.path} className="flex items-center space-x-2">
-                      <Icon className="w-4 h-4" />
-                      <span>{item.label}</span>
-                    </Link>
-                  </Button>
-                );
-              })}
-            </nav>
+            <div className="hidden md:flex items-center space-x-4">
+              <nav className="flex items-center space-x-1">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = location.pathname === item.path;
+                  return (
+                    <Button
+                      key={item.path}
+                      asChild
+                      variant={isActive ? "default" : "ghost"}
+                      size="sm"
+                      className="transition-smooth"
+                    >
+                      <Link to={item.path} className="flex items-center space-x-2">
+                        <Icon className="w-4 h-4" />
+                        <span>{item.label}</span>
+                      </Link>
+                    </Button>
+                  );
+                })}
+              </nav>
+              
+              <ProfileDropdown type={type} />
+            </div>
 
             {/* Mobile Menu Button */}
-            <button
-              className="md:hidden p-2 rounded hover:bg-muted transition"
-              onClick={() => setMobileMenuOpen((v) => !v)}
-              aria-label="Open menu"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-
-            {/* Admin/Citizen Actions */}
-            {type === "admin" && (
-              <div className="hidden md:flex items-center space-x-2">
-                <span className="text-sm text-muted-foreground hidden sm:block">Admin Panel</span>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/">View Citizen Site</Link>
-                </Button>
-              </div>
-            )}
-            {type === "citizen" && (
-              <div className="hidden md:flex">
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/admin/login">Staff Login</Link>
-                </Button>
-              </div>
-            )}
+            <div className="flex items-center space-x-2 md:hidden">
+              <ProfileDropdown type={type} />
+              <button
+                className="p-2 rounded hover:bg-muted transition"
+                onClick={() => setMobileMenuOpen((v) => !v)}
+                aria-label="Open menu"
+              >
+                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
           </div>
         </div>
         {/* Mobile Nav Drawer */}

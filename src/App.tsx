@@ -15,6 +15,7 @@ import ProfilePage from "./pages/ProfilePage";
 import ReportIssue from "./pages/ReportIssue";
 import CitizenDashboard from "./pages/CitizenDashboard";
 import ReportDetail from "./pages/ReportDetail";
+import DistrictReports from "./pages/DistrictReports";
 import Help from "./pages/Help";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -58,6 +59,11 @@ function App() {
                 <Route path="/report/:id" element={
                   <ProtectedRoute>
                     <Layout><ReportDetail /></Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/district-reports" element={
+                  <ProtectedRoute>
+                    <DistrictReports />
                   </ProtectedRoute>
                 } />
                 
