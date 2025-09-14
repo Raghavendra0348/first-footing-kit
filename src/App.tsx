@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,7 +8,7 @@ import { Layout } from "@/components/Layout";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { ReportsProvider } from "@/contexts/ReportsContext";
+import IntroPage from "@/components/IntroPage";
 import Homepage from "./pages/Homepage";
 import AuthPage from "./pages/AuthPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -30,10 +31,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="system" storageKey="civic-ui-theme">
         <AuthProvider>
-          <ReportsProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Homepage />} />
@@ -42,12 +42,12 @@ function App() {
                 
                 <Route path="/report" element={
                   <ProtectedRoute>
-                    <Layout><ReportIssue /></Layout>
+                    <ReportIssue />
                   </ProtectedRoute>
                 } />
                 <Route path="/dashboard" element={
                   <ProtectedRoute>
-                    <Layout><CitizenDashboard /></Layout>
+                    <CitizenDashboard />
                   </ProtectedRoute>
                 } />
                 <Route path="/profile" element={
@@ -71,8 +71,7 @@ function App() {
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
-            </TooltipProvider>
-          </ReportsProvider>
+          </TooltipProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

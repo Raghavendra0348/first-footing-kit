@@ -18,9 +18,16 @@ export type Database = {
         Row: {
           assigned_department: string | null
           category: string
+          citizen_email: string | null
+          citizen_name: string | null
+          citizen_phone: string | null
           created_at: string
+          date_acknowledged: string | null
+          date_in_progress: string | null
+          date_resolved: string | null
           description: string
           id: string
+          internal_notes: string[] | null
           location_address: string | null
           location_lat: number | null
           location_lng: number | null
@@ -31,15 +38,22 @@ export type Database = {
           status: string
           title: string
           updated_at: string
-          user_id: string
+          user_id: string | null
           voice_note_url: string | null
         }
         Insert: {
           assigned_department?: string | null
           category: string
+          citizen_email?: string | null
+          citizen_name?: string | null
+          citizen_phone?: string | null
           created_at?: string
+          date_acknowledged?: string | null
+          date_in_progress?: string | null
+          date_resolved?: string | null
           description: string
           id?: string
+          internal_notes?: string[] | null
           location_address?: string | null
           location_lat?: number | null
           location_lng?: number | null
@@ -50,15 +64,22 @@ export type Database = {
           status?: string
           title: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
           voice_note_url?: string | null
         }
         Update: {
           assigned_department?: string | null
           category?: string
+          citizen_email?: string | null
+          citizen_name?: string | null
+          citizen_phone?: string | null
           created_at?: string
+          date_acknowledged?: string | null
+          date_in_progress?: string | null
+          date_resolved?: string | null
           description?: string
           id?: string
+          internal_notes?: string[] | null
           location_address?: string | null
           location_lat?: number | null
           location_lng?: number | null
@@ -69,7 +90,7 @@ export type Database = {
           status?: string
           title?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
           voice_note_url?: string | null
         }
         Relationships: []

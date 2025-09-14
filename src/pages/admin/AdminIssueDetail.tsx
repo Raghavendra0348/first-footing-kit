@@ -7,8 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PriorityBadge } from "@/components/PriorityBadge";
-import { departments } from "@/data/constants";
-import { useReports } from "@/contexts/ReportsContext";
+import { useReports } from "@/hooks/useReports";
+import { departments } from "@/data/mockData";
 import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, 
@@ -25,24 +25,20 @@ import {
 
 const AdminIssueDetail = () => {
   const { id } = useParams();
-  const { getReportById, updateReport, addPublicNote, addInternalNote, loading } = useReports();
-  const report = getReportById(id || "");
+  const { reports, loading, updateReport, addNote } = useReports();
+  const report = reports.find(r => r.id === id);
   const { toast } = useToast();
 
   const [status, setStatus] = useState<string>(report?.status || "submitted");
   const [priority, setPriority] = useState<string>(report?.priority || "medium");
-  const [assignedDepartment, setAssignedDepartment] = useState<string>(report?.assignedDepartment || "");
+  const [assignedDepartment, setAssignedDepartment] = useState<string>(report?.assigned_department || "");
   const [publicNote, setPublicNote] = useState("");
   const [internalNote, setInternalNote] = useState("");
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-civic-blue"></div>
-          </div>
-        </div>
+      <div className="flex justify-center items-center min-h-96">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-civic-blue"></div>
       </div>
     );
   }
@@ -63,26 +59,34 @@ const AdminIssueDetail = () => {
     );
   }
 
-  const handleSaveChanges = () => {
-    toast({
-      title: "Changes Saved",
-      description: "Issue status and assignment have been updated.",
-    });
+  const handleSaveChanges = async () => {
+    if (!report || !id) return;
+    
+    try {
+      await updateReport(id, {
+        status: status as 'submitted' | 'acknowledged' | 'in-progress' | 'resolved',
+        priority: priority as 'low' | 'medium' | 'high',
+        assigned_department: assignedDepartment
+      });
+    } catch (error) {
+      // Error is handled in updateReport function
+    }
   };
 
-  const handleAddNote = (isPublic: boolean) => {
+  const handleAddNote = async (isPublic: boolean) => {
     const note = isPublic ? publicNote : internalNote;
-    if (!note.trim()) return;
+    if (!note.trim() || !id) return;
 
-    toast({
-      title: `${isPublic ? 'Public' : 'Internal'} Note Added`,
-      description: "The note has been saved and will be visible to relevant parties.",
-    });
-
-    if (isPublic) {
-      setPublicNote("");
-    } else {
-      setInternalNote("");
+    try {
+      await addNote(id, note, isPublic);
+      
+      if (isPublic) {
+        setPublicNote("");
+      } else {
+        setInternalNote("");
+      }
+    } catch (error) {
+      // Error is handled in addNote function
     }
   };
 
@@ -130,31 +134,58 @@ const AdminIssueDetail = () => {
                 <div className="flex items-center">
                   <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
                   <span className="text-sm">
-                    <strong>Submitted:</strong> {new Date(report.dateSubmitted).toLocaleDateString()}
+                    <strong>Submitted:</strong> {new Date(report.created_at).toLocaleDateString()}
                   </span>
                 </div>
                 <div className="flex items-center">
                   <MapPin className="w-4 h-4 mr-2 text-muted-foreground" />
                   <span className="text-sm">
-                    <strong>Location:</strong> {report.location.address}
+                    <strong>Location:</strong> {report.location_address || 'No address provided'}
                   </span>
                 </div>
               </div>
 
-              {/* Media */}
-              {report.media && report.media.length > 0 && (
+              {/* Media Files */}
+              {report.photo_urls && report.photo_urls.length > 0 && (
                 <div>
                   <h3 className="font-semibold mb-2">Attached Media</h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {report.media.map((mediaUrl, index) => (
-                      <div key={index} className="aspect-square bg-muted rounded-lg border overflow-hidden">
-                        <img
-                          src={mediaUrl}
-                          alt={`Issue media ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ))}
+                    {report.photo_urls.map((url, index) => {
+                      const isVideo = url.includes('.mp4') || url.includes('.webm') || url.includes('.mov');
+                      const isAudio = url.includes('.mp3') || url.includes('.wav') || url.includes('.m4a');
+                      
+                      if (isVideo) {
+                        return (
+                          <div key={index} className="aspect-video bg-muted rounded-lg border overflow-hidden">
+                            <video
+                              src={url}
+                              controls
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        );
+                      } else if (isAudio) {
+                        return (
+                          <div key={index} className="p-4 bg-muted rounded-lg border">
+                            <audio
+                              src={url}
+                              controls
+                              className="w-full"
+                            />
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <div key={index} className="aspect-square bg-muted rounded-lg border overflow-hidden">
+                            <img
+                              src={url}
+                              alt={`Issue media ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        );
+                      }
+                    })}
                   </div>
                 </div>
               )}
@@ -170,11 +201,11 @@ const AdminIssueDetail = () => {
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
-              {report.publicNotes && report.publicNotes.map((note) => (
-                <div key={note.id} className="border-l-4 border-civic-blue pl-4 py-2">
-                  <p className="text-sm">{note.content}</p>
+              {(report.public_notes || []).map((note, index) => (
+                <div key={index} className="border-l-4 border-civic-blue pl-4 py-2">
+                  <p className="text-sm">{note}</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {note.date} - {note.author}
+                    {new Date().toLocaleDateString()} - Municipal Staff
                   </p>
                 </div>
               ))}
@@ -208,11 +239,11 @@ const AdminIssueDetail = () => {
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
-              {report.internalNotes && report.internalNotes.map((note) => (
-                <div key={note.id} className="border-l-4 border-civic-amber pl-4 py-2">
-                  <p className="text-sm">{note.content}</p>
+              {(report.internal_notes || []).map((note, index) => (
+                <div key={index} className="border-l-4 border-civic-amber pl-4 py-2">
+                  <p className="text-sm">{note}</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {note.date} - {note.author}
+                    {new Date().toLocaleDateString()} - Staff Member
                   </p>
                 </div>
               ))}
@@ -300,16 +331,16 @@ const AdminIssueDetail = () => {
             <CardContent className="space-y-3">
               <div className="flex items-center">
                 <User className="w-4 h-4 mr-2 text-muted-foreground" />
-                <span className="text-sm">{report.citizenName}</span>
+                <span className="text-sm">{report.citizen_name || 'Anonymous'}</span>
               </div>
               <div className="flex items-center">
                 <Mail className="w-4 h-4 mr-2 text-muted-foreground" />
-                <span className="text-sm">{report.citizenEmail}</span>
+                <span className="text-sm">{report.citizen_email || 'No email provided'}</span>
               </div>
-              {report.citizenPhone && (
+              {report.citizen_phone && (
                 <div className="flex items-center">
                   <Phone className="w-4 h-4 mr-2 text-muted-foreground" />
-                  <span className="text-sm">{report.citizenPhone}</span>
+                  <span className="text-sm">{report.citizen_phone}</span>
                 </div>
               )}
             </CardContent>

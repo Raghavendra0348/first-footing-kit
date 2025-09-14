@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PriorityBadge } from "@/components/PriorityBadge";
-import { useReports } from "@/contexts/ReportsContext";
+import { useReports } from "@/hooks/useReports";
 import { Link } from "react-router-dom";
 import { 
   FileText, 
@@ -17,8 +17,8 @@ import {
 } from "lucide-react";
 
 const AdminDashboard = () => {
-  const { reports } = useReports();
-  
+  const { reports, loading } = useReports();
+
   const getStatistics = () => {
     const total = reports.length;
     const submitted = reports.filter(r => r.status === "submitted").length;
@@ -31,6 +31,14 @@ const AdminDashboard = () => {
 
   const stats = getStatistics();
   const recentReports = reports.slice(0, 5);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-96">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-civic-blue"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -143,7 +151,7 @@ const AdminDashboard = () => {
                       </span>
                       <span className="flex items-center">
                         <Users className="w-3 h-3 mr-1" />
-                        {report.citizenName}
+                        {report.citizen_name || 'Anonymous'}
                       </span>
                       <Badge variant="outline" className="text-xs">
                         {report.category}

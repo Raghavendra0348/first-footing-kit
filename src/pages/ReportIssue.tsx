@@ -6,32 +6,43 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useReports } from "@/contexts/ReportsContext";
-import { useAuth } from "@/hooks/useAuth";
-import { MapPin, Upload, Camera, Phone, CheckCircle, Sparkles } from "lucide-react";
+import { MapPin, Upload, Camera, Phone, Zap, AlertTriangle, Video, Mic } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { categories } from "@/data/constants";
-import { MediaPreview } from "@/components/MediaPreview";
+import { useReports } from "@/hooks/useReports";
 import { motion } from "framer-motion";
+import { Layout } from "@/components/Layout";
+import { MediaPreview } from "@/components/MediaPreview";
+
+const categories = [
+  "Road Maintenance",
+  "Street Lighting", 
+  "Vandalism",
+  "Trash Collection",
+  "Water Issues",
+  "Parks and Recreation",
+  "Noise Complaints",
+  "Traffic Signals",
+  "Sidewalk Repair",
+  "Other"
+];
 
 const ReportIssue = () => {
-  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    category: "",
+    location: "",
+    mediaFiles: [] as File[],
+  });
+  const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
-  const { addReport, uploadMedia } = useReports();
-
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
-  const [location, setLocation] = useState({ address: "", lat: undefined as number | undefined, lng: undefined as number | undefined });
-  const [media, setMedia] = useState<string[]>([]);
-  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
+  const { createReport, uploadMedia } = useReports();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!title.trim() || !description.trim() || !category || !location.address.trim()) {
+    if (!formData.title || !formData.description || !formData.category) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
@@ -40,86 +51,66 @@ const ReportIssue = () => {
       return;
     }
 
-    setIsSubmitting(true);
-
     try {
-      // Upload media files first
-      const uploadedMediaUrls: string[] = [];
-      for (const file of mediaFiles) {
-        try {
-          const url = await uploadMedia(file);
-          uploadedMediaUrls.push(url);
-        } catch (error) {
-          console.error('Error uploading file:', error);
-          // Continue with other files
+      setSubmitting(true);
+      
+      // Upload media files if any
+      let mediaUrls: string[] = [];
+      if (formData.mediaFiles.length > 0) {
+        mediaUrls = await uploadMedia(formData.mediaFiles);
+      }
+
+      // Parse location coordinates if provided
+      let locationLat: number | undefined;
+      let locationLng: number | undefined;
+      if (formData.location) {
+        const coords = formData.location.split(',');
+        if (coords.length === 2) {
+          locationLat = parseFloat(coords[0].trim());
+          locationLng = parseFloat(coords[1].trim());
         }
       }
 
-      const reportData = {
-        title: title.trim(),
-        description: description.trim(),
-        category,
-        priority: "medium",
-        status: "submitted",
-        citizenName: user?.user_metadata?.full_name || "Anonymous User",
-        citizenEmail: user?.email || "",
-        citizenPhone: user?.user_metadata?.phone || undefined,
-        location: {
-          address: location.address.trim(),
-          lat: location.lat || 0,
-          lng: location.lng || 0,
-        },
-        media: uploadedMediaUrls,
-        publicNotes: [],
-        internalNotes: [],
-      };
-
-      const reportId = await addReport(reportData);
-      
-      toast({
-        title: "Report Submitted Successfully!",
-        description: `Your issue has been logged with ID: ${reportId}`,
+      // Create report
+      await createReport({
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        location_address: formData.location,
+        location_lat: locationLat,
+        location_lng: locationLng,
+        photo_urls: mediaUrls
       });
 
-      // Reset form
-      setTitle("");
-      setDescription("");
-      setCategory("");
-      setLocation({ address: "", lat: undefined, lng: undefined });
-      setMedia([]);
-      setMediaFiles([]);
-      
-      // Navigate to success page or dashboard
+      // Redirect to dashboard
       navigate("/dashboard");
-      
     } catch (error) {
-      console.error("Error submitting report:", error);
-      toast({
-        title: "Submission Failed",
-        description: "There was an error submitting your report. Please try again.",
-        variant: "destructive",
-      });
+      // Error is handled in useReports hook
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const newMediaUrls = files.map(file => URL.createObjectURL(file));
-    setMedia(prev => [...prev, ...newMediaUrls]);
-    setMediaFiles(prev => [...prev, ...files]);
+    setFormData(prev => ({ ...prev, mediaFiles: [...prev.mediaFiles, ...files] }));
+  };
+
+  const removeMediaFile = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      mediaFiles: prev.mediaFiles.filter((_, i) => i !== index)
+    }));
   };
 
   const handleLocationDetect = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setLocation({
-            address: `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`,
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
+          setFormData(prev => ({
+            ...prev,
+            location: `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`
+          }));
           toast({
             title: "Location Detected",
             description: "Your current location has been added to the report.",
@@ -137,266 +128,252 @@ const ReportIssue = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <div className="flex items-center justify-center mb-6">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              className="w-16 h-16 bg-gradient-hero rounded-full flex items-center justify-center mr-4"
-            >
-              <Sparkles className="w-8 h-8 text-primary-foreground" />
-            </motion.div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              Report a Civic Issue
-            </h1>
-          </div>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Your voice matters! Help us improve your community by reporting issues that need attention. 
-            Every report makes a difference.
-          </p>
-        </motion.div>
-
-        <div className="grid lg:grid-cols-2 gap-8">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
+    <Layout>
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+        <div className="container mx-auto px-4 py-8">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-4xl mx-auto"
           >
-            <Card className="shadow-xl border-border/50 bg-gradient-card">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Camera className="w-5 h-5 mr-2 text-civic-blue" />
-                  Issue Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="title">Issue Title *</Label>
-                    <Input
-                      id="title"
-                      placeholder="Brief description of the issue"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      required
-                    />
-                  </div>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-center mb-8"
+            >
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary to-primary/80 rounded-full mb-6 mx-auto">
+                <AlertTriangle className="w-10 h-10 text-primary-foreground" />
+              </div>
+              <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+                Report a Civic Issue
+              </h1>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Help us build a better community by reporting issues that need attention. 
+                Your voice matters in making our city a better place to live.
+              </p>
+            </motion.div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="category">Category *</Label>
-                    <Select
-                      value={category}
-                      onValueChange={(value) => setCategory(value)}
-                      required
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select issue category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Main Form */}
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+                className="lg:col-span-2"
+              >
+                <Card className="shadow-xl border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+                  <CardHeader className="pb-6">
+                    <CardTitle className="flex items-center text-2xl">
+                      <div className="p-2 bg-primary/10 rounded-lg mr-3">
+                        <Camera className="w-6 h-6 text-primary" />
+                      </div>
+                      Issue Details
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="title">Issue Title *</Label>
+                        <Input
+                          id="title"
+                          placeholder="Brief description of the issue"
+                          value={formData.title}
+                          onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                          required
+                          className="h-12"
+                        />
+                      </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description *</Label>
-                    <Textarea
-                      id="description"
-                      placeholder="Provide detailed information about the issue, including when you first noticed it and any relevant details."
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      rows={4}
-                      required
-                    />
-                  </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="category">Category *</Label>
+                        <Select
+                          value={formData.category}
+                          onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                          required
+                        >
+                          <SelectTrigger className="h-12">
+                            <SelectValue placeholder="Select issue category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map((category) => (
+                              <SelectItem key={category} value={category}>
+                                {category}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="location">Location</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="location"
-                        placeholder="Enter address or coordinates"
-                        value={location.address}
-                        onChange={(e) => setLocation(prev => ({ ...prev, address: e.target.value }))}
-                        className="flex-1"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleLocationDetect}
-                        className="px-3"
-                      >
-                        <MapPin className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Click the location icon to auto-detect your current location
-                    </p>
-                  </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="description">Description *</Label>
+                        <Textarea
+                          id="description"
+                          placeholder="Provide detailed information about the issue, including when you first noticed it and any relevant details."
+                          value={formData.description}
+                          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                          rows={4}
+                          required
+                          className="resize-none"
+                        />
+                      </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="photos">Photos</Label>
-                    <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
-                      <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Upload photos of the issue (optional but recommended)
-                      </p>
-                      <input
-                        type="file"
-                        id="photos"
-                        multiple
-                        accept="image/*,video/*,audio/*"
-                        onChange={handleFileUpload}
-                        className="hidden"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => document.getElementById('photos')?.click()}
-                      >
-                        Choose Files
-                      </Button>
-                      {media.length > 0 && (
-                        <div className="mt-4 grid grid-cols-2 gap-2">
-                          {media.map((mediaUrl, index) => (
-                            <MediaPreview
-                              key={index}
-                              url={mediaUrl}
-                              type="image"
-                              className="h-20"
-                            />
-                          ))}
+                      <div className="space-y-2">
+                        <Label htmlFor="location">Location</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            id="location"
+                            placeholder="Enter address or coordinates"
+                            value={formData.location}
+                            onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                            className="flex-1 h-12"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleLocationDetect}
+                            className="px-4 h-12"
+                          >
+                            <MapPin className="w-4 h-4" />
+                          </Button>
                         </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="bg-gradient-to-br from-civic-blue/10 to-civic-green/10 rounded-lg p-6 border border-civic-blue/20">
-                    <div className="flex items-start">
-                      <Phone className="w-6 h-6 text-civic-blue mt-0.5 mr-4" />
-                      <div>
-                        <h3 className="font-semibold text-civic-blue mb-3">Emergency Issues</h3>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                          For urgent issues that pose immediate danger (gas leaks, water main breaks, etc.), 
-                          please call our emergency hotline: <strong className="text-civic-red">(555) 911-CITY</strong>
+                        <p className="text-sm text-muted-foreground">
+                          Click the location icon to auto-detect your current location
                         </p>
                       </div>
-                    </div>
-                  </div>
 
-                  <div className="flex gap-4 pt-6">
-                    <Button 
-                      type="submit" 
-                      className="flex-1" 
-                      variant="civic"
-                      disabled={isSubmitting}
-                      size="lg"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                            className="w-4 h-4 mr-2"
+                      <div className="space-y-4">
+                        <Label htmlFor="media">Media Files</Label>
+                        <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
+                          <div className="flex justify-center items-center space-x-4 mb-4">
+                            <Camera className="w-8 h-8 text-primary" />
+                            <Video className="w-8 h-8 text-green-500" />
+                            <Mic className="w-8 h-8 text-blue-500" />
+                          </div>
+                          <p className="text-lg font-medium mb-2">
+                            Upload photos, videos, or audio recordings
+                          </p>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Optional but recommended - media helps our teams respond faster
+                          </p>
+                          <input
+                            type="file"
+                            id="media"
+                            multiple
+                            accept="image/*,video/*,audio/*"
+                            onChange={handleFileUpload}
+                            className="hidden"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => document.getElementById('media')?.click()}
+                            className="h-12 px-6"
                           >
-                            <Sparkles className="w-4 h-4" />
-                          </motion.div>
-                          Submitting...
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                          Submit Report
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => navigate("/")}
-                      className="px-8"
-                      size="lg"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          </motion.div>
+                            <Upload className="w-4 h-4 mr-2" />
+                            Choose Media Files
+                          </Button>
+                          {formData.mediaFiles.length > 0 && (
+                            <p className="text-sm text-primary mt-3 font-medium">
+                              {formData.mediaFiles.length} file(s) selected
+                            </p>
+                          )}
+                        </div>
+                        
+                        <MediaPreview files={formData.mediaFiles} onRemove={removeMediaFile} />
+                      </div>
 
-          {/* Info Panel */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 }}
-            className="space-y-6"
-          >
-            <Card className="shadow-card bg-gradient-to-br from-background to-muted/20">
-              <CardHeader>
-                <CardTitle className="text-civic-blue">What Happens Next?</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {[
-                  { step: "1", title: "Immediate Review", desc: "Your report is reviewed within 24 hours" },
-                  { step: "2", title: "Assignment", desc: "Assigned to the appropriate department" },
-                  { step: "3", title: "Progress Updates", desc: "Regular updates sent to your email" },
-                  { step: "4", title: "Resolution", desc: "Issue resolved and marked complete" }
-                ].map((item, index) => (
-                  <motion.div
-                    key={item.step}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 + index * 0.1 }}
-                    className="flex items-start space-x-3"
-                  >
-                    <div className="w-8 h-8 bg-civic-blue rounded-full flex items-center justify-center text-white font-bold text-sm">
-                      {item.step}
-                    </div>
-                    <div>
-                      <h4 className="font-medium">{item.title}</h4>
-                      <p className="text-sm text-muted-foreground">{item.desc}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </CardContent>
-            </Card>
+                      <div className="flex gap-4 pt-6">
+                        <Button 
+                          type="submit" 
+                          className="flex-1 h-12 text-lg font-semibold" 
+                          disabled={submitting}
+                        >
+                          {submitting ? (
+                            <div className="flex items-center">
+                              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                              Submitting...
+                            </div>
+                          ) : (
+                            <div className="flex items-center">
+                              <Zap className="w-5 h-5 mr-2" />
+                              Submit Report
+                            </div>
+                          )}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => navigate("/")}
+                          className="px-8 h-12"
+                          disabled={submitting}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </form>
+                  </CardContent>
+                </Card>
+              </motion.div>
 
-            <Card className="shadow-card bg-gradient-to-br from-civic-green/5 to-civic-blue/5">
-              <CardHeader>
-                <CardTitle className="text-civic-green">Recent Success Stories</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-civic-green" />
-                    <span>247 potholes repaired this month</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-civic-green" />
-                    <span>156 streetlights fixed</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-civic-green" />
-                    <span>89 parks cleaned and maintained</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              {/* Sidebar */}
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+                className="space-y-6"
+              >
+                {/* Emergency Info */}
+                <Card className="shadow-lg border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/50 dark:to-orange-950/50">
+                  <CardContent className="pt-6">
+                    <div className="flex items-start">
+                      <div className="p-2 bg-amber-500/20 rounded-lg mr-3">
+                        <Phone className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-2">Emergency Issues</h3>
+                        <p className="text-sm text-amber-700 dark:text-amber-300 mb-3">
+                          For urgent issues that pose immediate danger (gas leaks, water main breaks, etc.)
+                        </p>
+                        <div className="bg-amber-100 dark:bg-amber-900/50 rounded-lg p-3">
+                          <p className="text-lg font-bold text-amber-800 dark:text-amber-200">
+                            📞 (555) 911-CITY
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Tips */}
+                <Card className="shadow-lg">
+                  <CardContent className="pt-6">
+                    <h3 className="font-semibold mb-4 flex items-center">
+                      <div className="w-2 h-2 bg-primary rounded-full mr-2"></div>
+                      Reporting Tips
+                    </h3>
+                    <ul className="space-y-3 text-sm text-muted-foreground">
+                      <li className="flex items-start">
+                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                        Be specific about the location and issue details
+                      </li>
+                      <li className="flex items-start">
+                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                        Include photos if possible - they help our teams respond faster
+                      </li>
+                      <li className="flex items-start">
+                        <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                        You'll receive updates via email as we work on your report
+                      </li>
+                    </ul>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
           </motion.div>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 

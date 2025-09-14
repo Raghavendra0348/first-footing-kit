@@ -1,120 +1,120 @@
-import { useState } from 'react';
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Play, Pause, Volume2, Download } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { X, Play, Pause, Download } from "lucide-react";
 
 interface MediaPreviewProps {
-  url: string;
-  type: 'image' | 'video' | 'audio';
-  className?: string;
+  files: File[];
+  onRemove: (index: number) => void;
 }
 
-export const MediaPreview = ({ url, type, className = "" }: MediaPreviewProps) => {
-  const [isPlaying, setIsPlaying] = useState(false);
+export const MediaPreview = ({ files, onRemove }: MediaPreviewProps) => {
+  const [playingVideo, setPlayingVideo] = useState<number | null>(null);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
-  const handlePlayPause = (element: HTMLVideoElement | HTMLAudioElement) => {
-    if (isPlaying) {
-      element.pause();
-    } else {
-      element.play();
-    }
-    setIsPlaying(!isPlaying);
+  const handleVideoPlay = (index: number) => {
+    // Pause all other videos
+    videoRefs.current.forEach((video, i) => {
+      if (video && i !== index) {
+        video.pause();
+      }
+    });
+    setPlayingVideo(index);
   };
 
-  const getFileType = (url: string): 'image' | 'video' | 'audio' => {
-    if (type !== 'image') return type;
-    
-    const extension = url.split('.').pop()?.toLowerCase();
-    if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(extension || '')) {
-      return 'video';
-    }
-    if (['mp3', 'wav', 'm4a', 'ogg', 'flac'].includes(extension || '')) {
-      return 'audio';
-    }
-    return 'image';
+  const handleVideoPause = () => {
+    setPlayingVideo(null);
   };
 
-  const fileType = getFileType(url);
+  const getFileType = (file: File) => {
+    if (file.type.startsWith('image/')) return 'image';
+    if (file.type.startsWith('video/')) return 'video';
+    if (file.type.startsWith('audio/')) return 'audio';
+    return 'unknown';
+  };
 
-  if (fileType === 'image') {
-    return (
-      <Dialog>
-        <DialogTrigger asChild>
-          <div className={`cursor-pointer hover:opacity-80 transition-opacity ${className}`}>
-            <img 
-              src={url} 
-              alt="Report attachment" 
-              className="w-full h-32 object-cover rounded-lg border"
-            />
-          </div>
-        </DialogTrigger>
-        <DialogContent className="max-w-4xl">
-          <img 
-            src={url} 
-            alt="Report attachment" 
-            className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
-          />
-          <div className="flex justify-end mt-4">
-            <Button asChild variant="outline" size="sm">
-              <a href={url} download target="_blank" rel="noopener noreferrer">
-                <Download className="w-4 h-4 mr-2" />
-                Download
-              </a>
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
 
-  if (fileType === 'video') {
-    return (
-      <div className={`relative ${className}`}>
-        <video 
-          className="w-full h-32 object-cover rounded-lg border"
-          controls
-          preload="metadata"
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
-        >
-          <source src={url} />
-          Your browser does not support the video tag.
-        </video>
-        <div className="absolute top-2 right-2">
-          <Button size="sm" variant="secondary" className="h-8 w-8 p-0">
-            {isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-          </Button>
-        </div>
+  if (files.length === 0) return null;
+
+  return (
+    <div className="space-y-4">
+      <h3 className="font-semibold text-sm">Selected Media ({files.length})</h3>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {files.map((file, index) => {
+          const fileType = getFileType(file);
+          const url = URL.createObjectURL(file);
+
+          return (
+            <Card key={index} className="relative p-2">
+              <Button
+                variant="destructive"
+                size="sm"
+                className="absolute -top-2 -right-2 rounded-full w-6 h-6 p-0 z-10"
+                onClick={() => onRemove(index)}
+              >
+                <X className="w-3 h-3" />
+              </Button>
+
+              {fileType === 'image' && (
+                <div className="aspect-square bg-muted rounded border overflow-hidden">
+                  <img
+                    src={url}
+                    alt={file.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+
+              {fileType === 'video' && (
+                <div className="aspect-video bg-muted rounded border overflow-hidden relative">
+                  <video
+                    ref={(el) => (videoRefs.current[index] = el)}
+                    src={url}
+                    className="w-full h-full object-cover"
+                    onPlay={() => handleVideoPlay(index)}
+                    onPause={handleVideoPause}
+                    controls
+                  />
+                  {playingVideo !== index && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                      <Play className="w-8 h-8 text-white" />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {fileType === 'audio' && (
+                <div className="p-4 bg-muted rounded border">
+                  <div className="text-center mb-2">
+                    <div className="w-12 h-12 mx-auto bg-civic-blue rounded-full flex items-center justify-center">
+                      <Play className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                  <audio
+                    src={url}
+                    controls
+                    className="w-full h-8"
+                  />
+                </div>
+              )}
+
+              <div className="mt-2 space-y-1">
+                <p className="text-xs font-medium truncate">{file.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {formatFileSize(file.size)}
+                </p>
+              </div>
+            </Card>
+          );
+        })}
       </div>
-    );
-  }
-
-  if (fileType === 'audio') {
-    return (
-      <div className={`border rounded-lg p-4 bg-muted/30 ${className}`}>
-        <div className="flex items-center gap-3">
-          <Volume2 className="w-5 h-5 text-muted-foreground" />
-          <div className="flex-1">
-            <audio 
-              className="w-full"
-              controls
-              preload="metadata"
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
-            >
-              <source src={url} />
-              Your browser does not support the audio tag.
-            </audio>
-          </div>
-          <Button asChild variant="outline" size="sm">
-            <a href={url} download target="_blank" rel="noopener noreferrer">
-              <Download className="w-4 h-4" />
-            </a>
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  return null;
+    </div>
+  );
 };
