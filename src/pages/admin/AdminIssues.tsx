@@ -57,7 +57,7 @@ const AdminIssues = () => {
   };
 
   if (loading) {
-  return (
+    return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="flex justify-center items-center py-12">
@@ -67,6 +67,8 @@ const AdminIssues = () => {
       </div>
     );
   }
+
+  return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center">

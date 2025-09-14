@@ -141,16 +141,16 @@ const AdminIssueDetail = () => {
                 </div>
               </div>
 
-              {/* Photos */}
-              {report.photos.length > 0 && (
+              {/* Media */}
+              {report.media && report.media.length > 0 && (
                 <div>
-                  <h3 className="font-semibold mb-2">Attached Photos</h3>
+                  <h3 className="font-semibold mb-2">Attached Media</h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {report.photos.map((photo, index) => (
+                    {report.media.map((mediaUrl, index) => (
                       <div key={index} className="aspect-square bg-muted rounded-lg border overflow-hidden">
                         <img
-                          src={photo}
-                          alt={`Issue photo ${index + 1}`}
+                          src={mediaUrl}
+                          alt={`Issue media ${index + 1}`}
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -170,11 +170,11 @@ const AdminIssueDetail = () => {
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
-              {report.publicNotes.map((note, index) => (
-                <div key={index} className="border-l-4 border-civic-blue pl-4 py-2">
-                  <p className="text-sm">{note}</p>
+              {report.publicNotes && report.publicNotes.map((note) => (
+                <div key={note.id} className="border-l-4 border-civic-blue pl-4 py-2">
+                  <p className="text-sm">{note.content}</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {new Date().toLocaleDateString()} - Municipal Staff
+                    {note.date} - {note.author}
                   </p>
                 </div>
               ))}
@@ -208,11 +208,11 @@ const AdminIssueDetail = () => {
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
-              {report.internalNotes.map((note, index) => (
-                <div key={index} className="border-l-4 border-civic-amber pl-4 py-2">
-                  <p className="text-sm">{note}</p>
+              {report.internalNotes && report.internalNotes.map((note) => (
+                <div key={note.id} className="border-l-4 border-civic-amber pl-4 py-2">
+                  <p className="text-sm">{note.content}</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {new Date().toLocaleDateString()} - Staff Member
+                    {note.date} - {note.author}
                   </p>
                 </div>
               ))}

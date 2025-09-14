@@ -16,10 +16,11 @@ const AdminAssign = () => {
   const [selectedReports, setSelectedReports] = useState<string[]>([]);
   const [bulkDepartment, setBulkDepartment] = useState("");
   const [bulkPriority, setBulkPriority] = useState("");
+  const { reports } = useReports();
   const { toast } = useToast();
 
   // Filter to show only unassigned or submitted reports
-  const assignableReports = mockReports.filter(
+  const assignableReports = reports.filter(
     report => !report.assignedDepartment || report.status === "submitted"
   );
 
