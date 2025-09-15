@@ -31,7 +31,7 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark" storageKey="civic-ui-theme">
+      <ThemeProvider defaultTheme="system" storageKey="civic-ui-theme">
         <AuthProvider>
           <TooltipProvider>
             <Toaster />
