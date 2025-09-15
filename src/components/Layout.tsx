@@ -67,6 +67,12 @@ export const Layout = ({ children, type = "citizen" }: LayoutProps) => {
                 })}
               </nav>
               
+              {type === "citizen" && (
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/admin/login">Admin Login</Link>
+                </Button>
+              )}
+              
               <ProfileDropdown type={type} />
             </div>
 

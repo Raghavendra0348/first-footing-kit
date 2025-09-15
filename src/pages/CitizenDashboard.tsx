@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 import { Calendar, MapPin, FileText, Eye, TrendingUp, BarChart3 } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { motion } from "framer-motion";
+import { getLocationDisplay } from "@/utils/locationUtils";
 
 const CitizenDashboard = () => {
   const [selectedTab, setSelectedTab] = useState("all");
@@ -239,7 +240,7 @@ const ReportsList = ({ reports }: { reports: any[] }) => {
                     </span>
                     <span className="flex items-center">
                       <MapPin className="w-4 h-4 mr-1" />
-                      {report.location_address || 'Location not specified'}
+                      {getLocationDisplay(report)}
                     </span>
                     <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
                       {report.category}

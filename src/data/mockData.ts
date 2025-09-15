@@ -27,7 +27,7 @@ export interface Report {
 
 export const mockReports: Report[] = [
   {
-    id: "RPT-2024-001",
+    id: "R2A1B3",
     title: "Pothole on Main Street",
     description: "Large pothole causing damage to vehicles. Located near the intersection with Oak Avenue.",
     category: "Road Maintenance",
@@ -56,7 +56,7 @@ export const mockReports: Report[] = [
     ]
   },
   {
-    id: "RPT-2024-002",
+    id: "S7K9F2",
     title: "Broken Street Light",
     description: "Street light has been out for several days, creating safety concerns for pedestrians.",
     category: "Street Lighting",
@@ -85,7 +85,7 @@ export const mockReports: Report[] = [
     ]
   },
   {
-    id: "RPT-2024-003",
+    id: "P8M4X6",
     title: "Graffiti on Public Building",
     description: "Offensive graffiti on the side of the community center building.",
     category: "Vandalism",

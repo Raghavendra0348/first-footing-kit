@@ -20,12 +20,15 @@ import {
   FileText,
   Save,
   MessageSquare,
-  Building
+  Building,
+  Trash2
 } from "lucide-react";
+import { MediaViewer } from "@/components/MediaViewer";
+import { getLocationDisplay } from "@/utils/locationUtils";
 
 const AdminIssueDetail = () => {
   const { id } = useParams();
-  const { reports, loading, updateReport, addNote } = useReports();
+  const { reports, loading, updateReport, addNote, deleteReport } = useReports();
   const report = reports.find(r => r.id === id);
   const { toast } = useToast();
 
@@ -90,6 +93,18 @@ const AdminIssueDetail = () => {
     }
   };
 
+  const handleDeleteReport = async () => {
+    if (!id || !confirm('Are you sure you want to delete this report? This action cannot be undone.')) return;
+    
+    try {
+      await deleteReport(id);
+      // Navigate back to issues list
+      window.location.href = '/admin/issues';
+    } catch (error) {
+      // Error is handled in deleteReport function
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -104,10 +119,16 @@ const AdminIssueDetail = () => {
           <h1 className="text-3xl font-bold">{report.title}</h1>
           <p className="text-muted-foreground">Issue ID: {report.id}</p>
         </div>
-        <Button onClick={handleSaveChanges} variant="civic">
-          <Save className="w-4 h-4 mr-2" />
-          Save Changes
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleDeleteReport} variant="destructive" size="sm">
+            <Trash2 className="w-4 h-4 mr-2" />
+            Delete
+          </Button>
+          <Button onClick={handleSaveChanges} variant="civic">
+            <Save className="w-4 h-4 mr-2" />
+            Save Changes
+          </Button>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
@@ -140,7 +161,7 @@ const AdminIssueDetail = () => {
                 <div className="flex items-center">
                   <MapPin className="w-4 h-4 mr-2 text-muted-foreground" />
                   <span className="text-sm">
-                    <strong>Location:</strong> {report.location_address || 'No address provided'}
+                    <strong>Location:</strong> {getLocationDisplay(report)}
                   </span>
                 </div>
               </div>
@@ -149,44 +170,7 @@ const AdminIssueDetail = () => {
               {report.photo_urls && report.photo_urls.length > 0 && (
                 <div>
                   <h3 className="font-semibold mb-2">Attached Media</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {report.photo_urls.map((url, index) => {
-                      const isVideo = url.includes('.mp4') || url.includes('.webm') || url.includes('.mov');
-                      const isAudio = url.includes('.mp3') || url.includes('.wav') || url.includes('.m4a');
-                      
-                      if (isVideo) {
-                        return (
-                          <div key={index} className="aspect-video bg-muted rounded-lg border overflow-hidden">
-                            <video
-                              src={url}
-                              controls
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        );
-                      } else if (isAudio) {
-                        return (
-                          <div key={index} className="p-4 bg-muted rounded-lg border">
-                            <audio
-                              src={url}
-                              controls
-                              className="w-full"
-                            />
-                          </div>
-                        );
-                      } else {
-                        return (
-                          <div key={index} className="aspect-square bg-muted rounded-lg border overflow-hidden">
-                            <img
-                              src={url}
-                              alt={`Issue media ${index + 1}`}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        );
-                      }
-                    })}
-                  </div>
+                  <MediaViewer urls={report.photo_urls} />
                 </div>
               )}
             </CardContent>

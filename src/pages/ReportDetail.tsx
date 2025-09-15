@@ -6,6 +6,8 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { PriorityBadge } from "@/components/PriorityBadge";
 import { useReports } from "@/hooks/useReports";
 import { ArrowLeft, MapPin, Calendar, User, Phone, Mail, FileText } from "lucide-react";
+import { MediaViewer } from "@/components/MediaViewer";
+import { getLocationDisplay } from "@/utils/locationUtils";
 
 const ReportDetail = () => {
   const { id } = useParams();
@@ -102,7 +104,7 @@ const ReportDetail = () => {
                   <div className="flex items-center">
                     <MapPin className="w-4 h-4 mr-2 text-muted-foreground" />
                     <span className="text-sm">
-                      <strong>Location:</strong> {report.location_address || 'No address provided'}
+                      <strong>Location:</strong> {getLocationDisplay(report)}
                     </span>
                   </div>
                   {report.assigned_department && (
@@ -119,44 +121,7 @@ const ReportDetail = () => {
                 {report.photo_urls && report.photo_urls.length > 0 && (
                   <div>
                     <h3 className="font-semibold mb-2">Media</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {report.photo_urls.map((url, index) => {
-                        const isVideo = url.includes('.mp4') || url.includes('.webm') || url.includes('.mov');
-                        const isAudio = url.includes('.mp3') || url.includes('.wav') || url.includes('.m4a');
-                        
-                        if (isVideo) {
-                          return (
-                            <div key={index} className="aspect-video bg-muted rounded-lg border overflow-hidden">
-                              <video
-                                src={url}
-                                controls
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          );
-                        } else if (isAudio) {
-                          return (
-                            <div key={index} className="p-4 bg-muted rounded-lg border">
-                              <audio
-                                src={url}
-                                controls
-                                className="w-full"
-                              />
-                            </div>
-                          );
-                        } else {
-                          return (
-                            <div key={index} className="aspect-square bg-muted rounded-lg border overflow-hidden">
-                              <img
-                                src={url}
-                                alt={`Report media ${index + 1}`}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          );
-                        }
-                      })}
-                    </div>
+                    <MediaViewer urls={report.photo_urls} />
                   </div>
                 )}
               </CardContent>

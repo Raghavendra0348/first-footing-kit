@@ -34,6 +34,7 @@ import { PriorityBadge } from '@/components/PriorityBadge';
 import { MediaPreview } from '@/components/MediaPreview';
 import { URLMediaPreview } from '@/components/URLMediaPreview';
 import { CATEGORIES, DISTRICTS } from '@/data/constants';
+import { getLocationDisplay } from '@/utils/locationUtils';
 
 interface ReportWithVotes extends Report {
   upvotes?: number;
@@ -275,10 +276,19 @@ const DistrictReports = () => {
                         {/* Media */}
                         <div className="md:col-span-1">
                           {report.photo_urls && report.photo_urls.length > 0 ? (
-                            <URLMediaPreview 
-                              urls={report.photo_urls} 
-                              className="w-full h-48 rounded-lg"
-                            />
+                            <div className="w-full h-48 bg-muted rounded-lg overflow-hidden">
+                              <img 
+                                src={report.photo_urls[0]} 
+                                alt={report.title}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = 'none';
+                                  target.parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center"><div class="w-8 h-8 text-muted-foreground">📷</div></div>';
+                                }}
+                              />
+                            </div>
                           ) : (
                             <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
                               <MapPin className="h-8 w-8 text-muted-foreground" />
@@ -312,7 +322,7 @@ const DistrictReports = () => {
                               </div>
                               <div className="flex items-center">
                                 <MapPin className="w-4 h-4 mr-1" />
-                                {report.location_address || 'Location not specified'}
+                                {getLocationDisplay(report)}
                               </div>
                             </div>
                           </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { generateShortId } from '@/utils/locationUtils';
 
 export interface Report {
   id: string;
@@ -197,6 +198,31 @@ export const useReports = () => {
     }
   };
 
+  const deleteReport = async (reportId: string) => {
+    try {
+      const { error } = await supabase
+        .from('civic_reports')
+        .delete()
+        .eq('id', reportId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Report deleted successfully.",
+      });
+
+      await fetchReports(); // Refresh reports
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to delete report: " + error.message,
+        variant: "destructive"
+      });
+      throw error;
+    }
+  };
+
   useEffect(() => {
     fetchReports();
   }, []);
@@ -208,6 +234,7 @@ export const useReports = () => {
     createReport,
     uploadMedia,
     updateReport,
-    addNote
+    addNote,
+    deleteReport
   };
 };
