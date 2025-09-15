@@ -57,16 +57,36 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        civic: {
-          blue: "hsl(var(--civic-blue))",
-          "blue-light": "hsl(var(--civic-blue-light))",
-          green: "hsl(var(--civic-green))",
-          "green-light": "hsl(var(--civic-green-light))",
-          amber: "hsl(var(--civic-amber))",
-          "amber-light": "hsl(var(--civic-amber-light))",
-          red: "hsl(var(--civic-red))",
-          "red-light": "hsl(var(--civic-red-light))",
+        // OpenArt color palette
+        openart: {
+          purple: "hsl(var(--openart-purple))",
+          blue: "hsl(var(--openart-blue))",
+          "blue-alt": "hsl(var(--openart-blue-alt))",
+          yellow: "hsl(var(--openart-yellow))",
+          "yellow-alt": "hsl(var(--openart-yellow-alt))",
         },
+        // Icon background themes
+        "icon-video": {
+          bg: "hsl(var(--icon-video-bg))",
+          fg: "hsl(var(--icon-video-fg))",
+        },
+        "icon-ai": {
+          bg: "hsl(var(--icon-ai-bg))",
+          fg: "hsl(var(--icon-ai-fg))",
+        },
+        "icon-creative": {
+          bg: "hsl(var(--icon-creative-bg))",
+          fg: "hsl(var(--icon-creative-fg))",
+        },
+        "icon-model": {
+          bg: "hsl(var(--icon-model-bg))",
+          fg: "hsl(var(--icon-model-fg))",
+        },
+        "icon-search": {
+          bg: "hsl(var(--icon-search-bg))",
+          fg: "hsl(var(--icon-search-fg))",
+        },
+        // Status colors
         status: {
           submitted: "hsl(var(--status-submitted))",
           "submitted-light": "hsl(var(--status-submitted-light))",
@@ -78,8 +98,8 @@ export default {
       },
       backgroundImage: {
         "gradient-hero": "var(--gradient-hero)",
+        "gradient-promo": "var(--gradient-promo)",
         "gradient-card": "var(--gradient-card)",
-        "gradient-success": "var(--gradient-success)",
       },
       boxShadow: {
         "card": "var(--shadow-card)",
