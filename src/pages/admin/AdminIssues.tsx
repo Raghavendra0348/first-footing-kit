@@ -11,6 +11,8 @@ import { useReports } from "@/hooks/useReports";
 import { categories, departments } from "@/data/mockData";
 import { Link } from "react-router-dom";
 import { Search, Filter, Download, Eye, MapPin, Calendar } from "lucide-react";
+import { getLocationDisplay } from "@/utils/locationUtils";
+import { getShortId } from "@/utils/shortId";
 
 const AdminIssues = () => {
   const { reports, loading } = useReports();
@@ -177,6 +179,7 @@ const AdminIssues = () => {
                 <TableHead>Category</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Priority</TableHead>
+                <TableHead>Upvotes</TableHead>
                 <TableHead>Department</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Actions</TableHead>
@@ -185,7 +188,7 @@ const AdminIssues = () => {
             <TableBody>
               {filteredReports.map((report) => (
                 <TableRow key={report.id} className="hover:bg-muted/30">
-                  <TableCell className="font-mono text-sm">{report.id}</TableCell>
+                  <TableCell className="font-mono text-sm">{getShortId(report.id)}</TableCell>
                   <TableCell>
                     <div>
                       <div className="font-medium">{report.title}</div>
@@ -209,6 +212,11 @@ const AdminIssues = () => {
                   </TableCell>
                   <TableCell>
                     <PriorityBadge priority={report.priority} />
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      0 ↑
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     {report.assigned_department ? (

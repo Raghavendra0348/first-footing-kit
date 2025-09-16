@@ -35,6 +35,7 @@ import { MediaPreview } from '@/components/MediaPreview';
 import { URLMediaPreview } from '@/components/URLMediaPreview';
 import { CATEGORIES, DISTRICTS } from '@/data/constants';
 import { getLocationDisplay } from '@/utils/locationUtils';
+import { getShortId } from '@/utils/shortId';
 
 interface ReportWithVotes extends Report {
   upvotes?: number;

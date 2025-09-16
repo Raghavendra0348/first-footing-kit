@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,10 +11,16 @@ import { Calendar, MapPin, FileText, Eye, TrendingUp, BarChart3 } from "lucide-r
 import { Layout } from "@/components/Layout";
 import { motion } from "framer-motion";
 import { getLocationDisplay } from "@/utils/locationUtils";
+import { getShortId } from "@/utils/shortId";
 
 const CitizenDashboard = () => {
   const [selectedTab, setSelectedTab] = useState("all");
-  const { reports, loading } = useReports();
+  const { reports, loading, fetchUserReports } = useReports();
+
+  // Fetch user reports on component mount
+  useEffect(() => {
+    fetchUserReports();
+  }, []);
 
   // Filter reports based on selected tab
   const filteredReports = reports.filter(report => {
@@ -232,7 +238,7 @@ const ReportsList = ({ reports }: { reports: any[] }) => {
                   <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                     <span className="flex items-center bg-muted/50 px-2 py-1 rounded-md">
                       <FileText className="w-4 h-4 mr-1" />
-                      {report.id}
+                      {getShortId(report.id)}
                     </span>
                     <span className="flex items-center">
                       <Calendar className="w-4 h-4 mr-1" />

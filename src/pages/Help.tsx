@@ -143,7 +143,7 @@ const Help = () => {
           </CardContent>
         </Card>
 
-        {/* Contact Support */}
+        {/* Contact Support
         <Card className="shadow-card">
           <CardHeader>
             <CardTitle>Still Need Help?</CardTitle>
@@ -188,7 +188,7 @@ const Help = () => {
               </p>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </div>
   );

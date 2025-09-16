@@ -35,22 +35,33 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-hero flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-primary-foreground rounded-full flex items-center justify-center mx-auto mb-4">
-            <Shield className="w-8 h-8 text-civic-blue" />
-          </div>
-          <h1 className="text-2xl font-bold text-primary-foreground mb-2">Admin Login</h1>
-          <p className="text-primary-foreground/80">
-            Access the CivicReport administrative panel
-          </p>
+  <Shield className="w-8 h-8 text-civic-blue" />
+</div>
+
+<h1 className="text-2xl font-bold text-white mb-2">Admin Login</h1>
+<p className="text-white/80">
+  Access the CivicReport administrative panel
+</p>
+
         </div>
 
         <Card className="shadow-elevated">
           <CardHeader>
-            <CardTitle className="text-center">Staff Authentication</CardTitle>
-          </CardHeader>
+  <CardTitle className="text-center">Staff Authentication</CardTitle>
+  <div className="flex justify-center mt-4">
+  <img
+    src="/admin.jpeg" // put admin.jpeg inside public/
+    alt="Admin Logo"
+    className="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover"
+  />
+</div>
+
+</CardHeader>
+
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
@@ -96,13 +107,13 @@ const AdminLogin = () => {
               </Button>
             </div>
 
-            <div className="mt-6 p-4 bg-civic-blue-light rounded-lg">
+            {/* <div className="mt-6 p-4 bg-civic-blue-light rounded-lg">
               <p className="text-sm text-muted-foreground text-center">
                 <strong>Demo Credentials:</strong><br />
                 Username: admin<br />
                 Password: admin
               </p>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
 

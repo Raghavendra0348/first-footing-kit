@@ -12,6 +12,7 @@ import { useReports } from "@/hooks/useReports";
 import { motion } from "framer-motion";
 import { Layout } from "@/components/Layout";
 import { MediaPreview } from "@/components/MediaPreview";
+import { getCurrentLocation, getAddressFromCoordinates } from "@/utils/geocoding";
 
 const categories = [
   "Road Maintenance",
@@ -35,6 +36,7 @@ const ReportIssue = () => {
     mediaFiles: [] as File[],
   });
   const [submitting, setSubmitting] = useState(false);
+  const [detectingLocation, setDetectingLocation] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { createReport, uploadMedia } = useReports();
@@ -77,8 +79,6 @@ const ReportIssue = () => {
         description: formData.description,
         category: formData.category,
         location_address: formData.location,
-        location_lat: locationLat,
-        location_lng: locationLng,
         photo_urls: mediaUrls
       });
 
@@ -232,9 +232,14 @@ const ReportIssue = () => {
                             type="button"
                             variant="outline"
                             onClick={handleLocationDetect}
+                            disabled={detectingLocation}
                             className="px-4 h-12"
                           >
-                            <MapPin className="w-4 h-4" />
+                            {detectingLocation ? (
+                              <div className="w-4 h-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                            ) : (
+                              <MapPin className="w-4 h-4" />
+                            )}
                           </Button>
                         </div>
                         <p className="text-sm text-muted-foreground">
@@ -337,7 +342,7 @@ const ReportIssue = () => {
                         </p>
                         <div className="bg-amber-100 dark:bg-amber-900/50 rounded-lg p-3">
                           <p className="text-lg font-bold text-amber-800 dark:text-amber-200">
-                            📞 (555) 911-CITY
+                            📞 100 - Police 
                           </p>
                         </div>
                       </div>

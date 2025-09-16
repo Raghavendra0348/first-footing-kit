@@ -25,6 +25,9 @@ import {
 } from "lucide-react";
 import { MediaViewer } from "@/components/MediaViewer";
 import { getLocationDisplay } from "@/utils/locationUtils";
+import { sendEmailToCitizen, generateReportPDF } from "@/utils/adminActions";
+import { getShortId } from "@/utils/shortId";
+import { Map } from "@/components/ui/map";
 
 const AdminIssueDetail = () => {
   const { id } = useParams();
@@ -105,6 +108,54 @@ const AdminIssueDetail = () => {
     }
   };
 
+  const handleEmailCitizen = async () => {
+    if (!report?.citizen_email) {
+      toast({
+        title: "Error",
+        description: "No email address available for this citizen.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const subject = `Update on your report: ${report.title}`;
+    const message = `Hello,\n\nWe have an update on your civic report (ID: ${getShortId(report.id)}).\n\nCurrent status: ${report.status}\n\nThank you for your patience.\n\nBest regards,\nCivic Services Team`;
+    
+    const result = await sendEmailToCitizen(report.id, report.citizen_email, subject, message);
+    
+    if (result.success) {
+      toast({
+        title: "Success",
+        description: "Email sent to citizen successfully.",
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to send email. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleGenerateReport = async () => {
+    if (!report) return;
+    
+    const result = await generateReportPDF(report.id);
+    
+    if (result.success) {
+      toast({
+        title: "Success",
+        description: "Report generated and downloaded successfully.",
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to generate report. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -117,7 +168,7 @@ const AdminIssueDetail = () => {
         </Button>
         <div className="flex-1">
           <h1 className="text-3xl font-bold">{report.title}</h1>
-          <p className="text-muted-foreground">Issue ID: {report.id}</p>
+          <p className="text-muted-foreground">Issue ID: {getShortId(report.id)}</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={handleDeleteReport} variant="destructive" size="sm">
@@ -164,6 +215,12 @@ const AdminIssueDetail = () => {
                     <strong>Location:</strong> {getLocationDisplay(report)}
                   </span>
                 </div>
+              </div>
+
+              {/* Location Map */}
+              <div>
+                <h3 className="font-semibold mb-2">Location Map</h3>
+                <Map address={getLocationDisplay(report)} />
               </div>
 
               {/* Media Files */}
@@ -336,15 +393,28 @@ const AdminIssueDetail = () => {
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full" disabled>
+              <Button 
+                onClick={handleEmailCitizen}
+                variant="outline" 
+                className="w-full justify-start"
+                disabled={!report.citizen_email}
+              >
                 <Mail className="w-4 h-4 mr-2" />
                 Email Citizen
               </Button>
-              <Button variant="outline" className="w-full" disabled>
+              <Button 
+                onClick={handleGenerateReport}
+                variant="outline" 
+                className="w-full justify-start"
+              >
                 <FileText className="w-4 h-4 mr-2" />
                 Generate Report
               </Button>
-              <Button variant="outline" className="w-full" disabled>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={() => window.open(`https://maps.google.com/?q=${getLocationDisplay(report)}`, '_blank')}
+              >
                 <MapPin className="w-4 h-4 mr-2" />
                 View on Map
               </Button>

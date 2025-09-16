@@ -58,13 +58,38 @@ export const useReports = () => {
     }
   };
 
+  const fetchUserReports = async () => {
+    try {
+      setLoading(true);
+      if (!user) {
+        setReports([]);
+        return;
+      }
+      
+      const { data, error } = await supabase
+        .from('civic_reports')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setReports((data || []) as any);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to load your reports: " + error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const createReport = async (reportData: {
     title: string;
     description: string;
     category: string;
     location_address?: string;
-    location_lat?: number;
-    location_lng?: number;
     photo_urls?: string[];
   }) => {
     try {
@@ -72,11 +97,21 @@ export const useReports = () => {
         throw new Error('You must be logged in to submit a report');
       }
 
+      // Get user profile for contact info
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, phone')
+        .eq('user_id', user.id)
+        .single();
+
       const { data, error } = await supabase
         .from('civic_reports')
         .insert({
           ...reportData,
           user_id: user.id,
+          citizen_name: profile?.full_name || user.email?.split('@')[0] || 'Anonymous',
+          citizen_email: user.email || '',
+          citizen_phone: profile?.phone || '',
           status: 'submitted',
           priority: 'medium'
         })
@@ -231,6 +266,7 @@ export const useReports = () => {
     reports,
     loading,
     fetchReports,
+    fetchUserReports,
     createReport,
     uploadMedia,
     updateReport,

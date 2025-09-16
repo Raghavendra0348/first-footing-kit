@@ -1,7 +1,7 @@
 import { ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { FileText, Home, BarChart3, Users, Menu, X } from "lucide-react";
+import { FileText, Home, BarChart3, Users, Menu, X, ArrowLeft } from "lucide-react";
 import { ProfileDropdown } from "@/components/ProfileDropdown";
 
 interface LayoutProps {
@@ -70,6 +70,15 @@ export const Layout = ({ children, type = "citizen" }: LayoutProps) => {
               {type === "citizen" && (
                 <Button asChild variant="outline" size="sm">
                   <Link to="/admin/login">Admin Login</Link>
+                </Button>
+              )}
+              
+              {type === "admin" && (
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Citizen Mode
+                  </Link>
                 </Button>
               )}
               
@@ -156,14 +165,14 @@ export const Layout = ({ children, type = "citizen" }: LayoutProps) => {
             <div>
               <h4 className="font-medium text-foreground mb-3">Contact</h4>
               <div className="space-y-2 text-sm text-muted-foreground">
-                <p>Phone: (555) 123-CITY</p>
+                <p>Phone: 9876543210</p>
                 <p>Email: help@civicreport.gov</p>
-                <p>Hours: Mon-Fri 8AM-5PM</p>
+                <p>Timing:Anytime</p>
               </div>
             </div>
           </div>
           <div className="border-t pt-6 mt-6 flex flex-col sm:flex-row justify-between items-center text-sm text-muted-foreground">
-            <p>&copy; 2024 CivicReport System. All rights reserved.</p>
+            <p>&copy; 2025 CivicReport System. All rights reserved.</p>
             <div className="flex space-x-4 mt-2 sm:mt-0">
               <Link to="/privacy" className="hover:text-foreground transition-smooth">Privacy Policy</Link>
               <Link to="/terms" className="hover:text-foreground transition-smooth">Terms of Service</Link>
